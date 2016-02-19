@@ -37,7 +37,6 @@ import io.nard.ircbot.simplemods.Calculator;
 import io.nard.ircbot.simplemods.RandomnessExtension;
 import io.nard.ircbot.simplemods.TopicVariables;
 import io.nard.ircbot.web.APIHandler;
-import irc.nard.ircbot.config.BotConfig;
 
 public class Bot extends ListenerAdapter {
 

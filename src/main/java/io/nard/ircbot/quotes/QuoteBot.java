@@ -12,13 +12,13 @@ import org.pircbotx.hooks.events.MessageEvent;
 
 import com.google.common.base.Joiner;
 
+import io.nard.ircbot.BotConfig;
 import io.nard.ircbot.Command;
 import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
 import io.nard.ircbot.MessageBuffer;
 import io.nard.ircbot.MessageBuffer.BufferEntry;
 import io.nard.ircbot.Privilege;
-import irc.nard.ircbot.config.BotConfig;
 
 /**
  * Listener for IRC bot QuoteBot module

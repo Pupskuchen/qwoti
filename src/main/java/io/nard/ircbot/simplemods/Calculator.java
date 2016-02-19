@@ -3,10 +3,10 @@ package io.nard.ircbot.simplemods;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.MessageEvent;
 
+import io.nard.ircbot.BotConfig;
 import io.nard.ircbot.Command;
 import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
-import irc.nard.ircbot.config.BotConfig;
 
 public abstract class Calculator {
 

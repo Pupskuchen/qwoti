@@ -12,8 +12,6 @@ import org.pircbotx.User;
 import org.pircbotx.hooks.WaitForQueue;
 import org.pircbotx.hooks.events.WhoisEvent;
 
-import irc.nard.ircbot.config.BotConfig;
-
 public class BotHelper {
 
   /**

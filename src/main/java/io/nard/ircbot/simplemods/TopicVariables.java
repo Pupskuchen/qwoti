@@ -13,11 +13,11 @@ import org.pircbotx.output.OutputChannel;
 
 import com.google.common.collect.Lists;
 
+import io.nard.ircbot.BotConfig;
 import io.nard.ircbot.Command;
 import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
 import io.nard.ircbot.Privilege;
-import irc.nard.ircbot.config.BotConfig;
 
 public abstract class TopicVariables {
 

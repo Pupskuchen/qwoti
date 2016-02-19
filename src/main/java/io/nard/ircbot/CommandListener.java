@@ -11,8 +11,6 @@ import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 
-import irc.nard.ircbot.config.BotConfig;
-
 public class CommandListener extends ListenerAdapter {
   private BotHelper botHelper;
   private Map<String, String> commandChars = new HashMap<String, String>();

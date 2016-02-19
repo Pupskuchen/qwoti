@@ -1,4 +1,4 @@
-package irc.nard.ircbot.config;
+package io.nard.ircbot;
 
 import java.io.FileWriter;
 import java.io.IOException;

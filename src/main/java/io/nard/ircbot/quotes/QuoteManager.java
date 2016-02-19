@@ -15,7 +15,7 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 
 import io.nard.ircbot.Bot;
-import irc.nard.ircbot.config.BotConfig;
+import io.nard.ircbot.BotConfig;
 
 /**
  * Handle database interactions for quotes
