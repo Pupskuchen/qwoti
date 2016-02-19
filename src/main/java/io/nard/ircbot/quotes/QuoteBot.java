@@ -242,7 +242,7 @@ public abstract class QuoteBot {
           }
           if (success && quote != null) {
             // event.respond("saved quote #" + quoteManager.getLatestId());
-            event.getChannel().send().message("saved" + quote.niceString(event.getChannel()));
+            event.getChannel().send().message("saved " + quote.niceString(event.getChannel()));
           } else {
             event.respond("quote couldn't be saved");
           }
@@ -264,7 +264,8 @@ public abstract class QuoteBot {
         String message = event.getMessage();
         Channel channel = event.getChannel();
 
-        if (!message.startsWith(botConfig.getString("commandchar") + "snap")) {
+        if (!message.startsWith(
+            botConfig.getObject("networks").getJSONObject(network.toLowerCase()).getString("commandchar") + "snap")) {
           messageBuffer.add(network, channel.getName(), messageBuffer.new BufferEntry(user, message));
         }
 
