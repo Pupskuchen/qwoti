@@ -297,6 +297,11 @@ public class Bot extends ListenerAdapter {
         } catch (IOException e) {
         }
 
+        // sleep for a while because the bot is still connected afer disconnecting
+        try {
+          Thread.sleep(200);
+        } catch (InterruptedException e) {
+        }
         List<PircBotX> bots = Lists.newArrayList(botManager.getBots());
         int connectedBots = 0;
         for (PircBotX aBot : bots) {
