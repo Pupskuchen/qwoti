@@ -1,6 +1,5 @@
 {
     "dbfile": "qwoti.odb",
-    "pupsnet": ["#dev"],
     "whoiscache": 360,
     "httpPort": 8080,
     "networks": {"pupsnet": {

@@ -259,7 +259,7 @@ public class Bot extends ListenerAdapter {
             currentChannels.add(channel.getName());
           }
 
-          botConfig.putList(network, currentChannels);
+          botHelper.updateChannelConfig(network, currentChannels);
 
           // bot.sendIRC().quitServer(quitMessage);
 
@@ -288,7 +288,7 @@ public class Bot extends ListenerAdapter {
           currentChannels.add(channel.getName());
         }
 
-        botConfig.putList(network, currentChannels);
+        botHelper.updateChannelConfig(network, currentChannels);
 
         bot.sendIRC().quitServer(quitMessage);
 
@@ -314,6 +314,7 @@ public class Bot extends ListenerAdapter {
           System.exit(0);
         }
       }
+
     });
 
     globalConfig.addListener(commandListener);

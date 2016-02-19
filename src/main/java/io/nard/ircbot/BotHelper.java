@@ -163,4 +163,12 @@ public class BotHelper {
       }
     }
   }
+
+  public void updateChannelConfig(String network, List<String> currentChannels) {
+    JSONObject networks = botConfig.getObject("networks");
+    JSONObject networkC = networks.getJSONObject(network);
+    networkC.put("chans", currentChannels);
+    networks.put(network, networkC);
+    botConfig.putObject("networks", networks);
+  }
 }
