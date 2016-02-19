@@ -21,22 +21,23 @@ public abstract class RandomnessExtension {
 
   public static Listener module(BotConfig botConfig) {
 
-    final List<String> returnList = new ArrayList<String>();
     CommandListener commandListener = new CommandListener(botConfig);
 
     commandListener.addCommand(new Command("random") {
 
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {
+        List<String> params = commandParam.getParams();
 
-        if (commandParam.getParams().size() == 0) {
+        if (params.size() == 0) {
           event.respond("Parameters insufficient");
           return;
         }
+        List<String> returnList = new ArrayList<String>();
 
         String temp = "";
         boolean connected = false;
-        for (String s : commandParam.getParams()) {
+        for (String s : params) {
           if (s.startsWith("\"")) {
             connected = true;
             temp += s + " ";
@@ -53,15 +54,8 @@ public abstract class RandomnessExtension {
           }
         }
 
-        if (returnList.size() == 0) {
-          for (String s : commandParam.getParams()) {
-            returnList.add(s);
-          }
-        }
-
         int returny = (int) (Math.random() * returnList.size());
         event.respond(returnList.get(returny));
-        returnList.clear();
       }
 
     }).addCommand(new Command("roll") {
