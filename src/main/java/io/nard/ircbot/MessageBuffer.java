@@ -233,10 +233,16 @@ public class MessageBuffer {
   public class BufferEntry {
     private String user;
     private String message;
+    private MessageType type;
 
     public BufferEntry(String user, String message) {
+      this(user, message, MessageType.MESSAGE);
+    }
+
+    public BufferEntry(String user, String message, MessageType type) {
       this.user = user;
       this.message = message;
+      this.type = type;
     }
 
     public String getMessage() {
@@ -247,9 +253,24 @@ public class MessageBuffer {
       return user;
     }
 
+    public MessageType getType() {
+      return type;
+    }
+
     @Override
     public String toString() {
-      return "<" + getUser() + "> " + getMessage();
+      if (type == MessageType.ACTION) {
+        return "* " + getUser() + " " + getMessage();
+      } else {
+        return "<" + getUser() + "> " + getMessage();
+      }
     }
+  }
+
+  /**
+   * what kind of message we're looking at
+   */
+  public enum MessageType {
+    MESSAGE, ACTION
   }
 }

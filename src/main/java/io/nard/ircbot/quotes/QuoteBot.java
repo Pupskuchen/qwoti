@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import org.pircbotx.Channel;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.events.ActionEvent;
 import org.pircbotx.hooks.events.MessageEvent;
 
 import com.google.common.base.Joiner;
@@ -18,6 +19,7 @@ import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
 import io.nard.ircbot.MessageBuffer;
 import io.nard.ircbot.MessageBuffer.BufferEntry;
+import io.nard.ircbot.MessageBuffer.MessageType;
 import io.nard.ircbot.Privilege;
 
 /**
@@ -241,7 +243,6 @@ public abstract class QuoteBot {
           } catch (Exception e) {
           }
           if (success && quote != null) {
-            // event.respond("saved quote #" + quoteManager.getLatestId());
             event.getChannel().send().message("saved " + quote.niceString(event.getChannel()));
           } else {
             event.respond("quote couldn't be saved");
@@ -270,7 +271,6 @@ public abstract class QuoteBot {
         }
 
         Pattern pattern = Pattern.compile(".*(?:\\A| |\\()q(\\d+)(?:\\Z| |\\)).*");
-        // old: ".*[ (]?q([0-9]+)[) ]?.*"
 
         if (message.matches(pattern.toString())) {
 
@@ -284,6 +284,17 @@ public abstract class QuoteBot {
               channel.send().message(quote.niceString(channel));
             }
           }
+        }
+      }
+
+      @Override
+      public void onAction(ActionEvent event) throws Exception {
+        Channel chan = event.getChannel();
+        if (chan != null) {
+          String network = event.getBot().getServerInfo().getNetwork();
+          String user = event.getUser().getNick();
+          String message = event.getMessage();
+          messageBuffer.add(network, chan.getName(), messageBuffer.new BufferEntry(user, message, MessageType.ACTION));
         }
       }
     });
