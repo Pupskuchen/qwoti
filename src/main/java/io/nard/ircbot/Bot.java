@@ -98,10 +98,15 @@ public class Bot extends ListenerAdapter {
     // TODO: scheduler/reminder/timer module
     // TODO: network-relay
     // TODO: nickserv authentication
-    // TODO: configuration by command
+    // TODO: configuration (read/write) by command
     // TODO: reload/restart
     // TODO: last <offset> (higher offset -> older quotes)
     // TODO: OPT: global config reload (?)
+    // TODO: lastfm
+    // TODO: wa / g / isup / dns resolve / ud
+    // TODO: interval: save config / log uptime (precision: seconds)
+    // TODO: q <pattern> (find -> choose randomly from results)
+    // TODO: weather / temp
 
     CommandListener commandListener = new CommandListener(botConfig);
     commandListener.addCommand(new Command("ping", "ditti") {
