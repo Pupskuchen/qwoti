@@ -157,7 +157,7 @@ public class BotHelper {
         for (String priv : privileges.keySet()) {
           List<String> accounts = botConfig.toList(networks.getJSONObject(network).getJSONArray(priv));
           for (String account : accounts) {
-            userPrivileges.get(network).put(account, privileges.get(priv));
+            userPrivileges.get(network).put(account.toLowerCase(), privileges.get(priv));
           }
         }
       }
