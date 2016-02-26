@@ -142,7 +142,7 @@ public abstract class QuoteBot {
           }
         }
       }
-    }).addCommand(new Command(Privilege.OWNER, "del", "delete") {
+    }).addCommand(new Command(Privilege.ADMIN, "del", "delete") {
 
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {

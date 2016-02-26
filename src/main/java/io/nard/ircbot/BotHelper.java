@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -165,9 +166,25 @@ public class BotHelper {
   }
 
   public void updateChannelConfig(String network, List<String> currentChannels) {
+    setNetworkConfig(network, "chans", currentChannels);
+  }
+
+  public JSONObject getNetworkConfig(String network) {
+    return botConfig.getObject("networks").getJSONObject(network);
+  }
+
+  public Object getNetworkConfig(String network, String key) {
+    try {
+      return getNetworkConfig(network).get(key);
+    } catch (JSONException e) {
+      return null;
+    }
+  }
+
+  public void setNetworkConfig(String network, String key, Object value) {
     JSONObject networks = botConfig.getObject("networks");
     JSONObject networkC = networks.getJSONObject(network);
-    networkC.put("chans", currentChannels);
+    networkC.put(key, value);
     networks.put(network, networkC);
     botConfig.putObject("networks", networks);
   }

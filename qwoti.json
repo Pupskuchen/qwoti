@@ -8,7 +8,8 @@
         "changenick": true,
         "owners": [
             "Ditti",
-            "pkn"
+            "pkn",
+            "wipeD"
         ],
         "commandchar": ";",
         "ssl": true,
@@ -22,7 +23,6 @@
         "trustAllCerts": true,
         "admins": [
             "SSL",
-            "wiped",
             "Klemmlampe",
             "Joshua"
         ]

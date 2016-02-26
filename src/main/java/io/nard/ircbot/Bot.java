@@ -98,7 +98,6 @@ public class Bot extends ListenerAdapter {
     // TODO: scheduler/reminder/timer module
     // TODO: network-relay
     // TODO: nickserv authentication
-    // TODO: configuration (read/write) by command
     // TODO: reload/restart
     // TODO: last <offset> (higher offset -> older quotes)
     // TODO: OPT: global config reload (?)
@@ -107,6 +106,7 @@ public class Bot extends ListenerAdapter {
     // TODO: interval: save config / log uptime (precision: seconds)
     // TODO: q <pattern> (find -> choose randomly from results)
     // TODO: weather / temp
+    // TODO: addlink
 
     CommandListener commandListener = new CommandListener(botConfig);
     commandListener.addCommand(new Command("ping", "ditti") {
@@ -212,14 +212,14 @@ public class Bot extends ListenerAdapter {
 
             for (Command command : commandList) {
               if (userPrivilege.compareTo(command.getRequiredPrivilege()) >= 0) {
-                commands.addAll(command.getCommands());
+                commands.add(command.getCommands().get(0));
               }
             }
 
           } else if (listener instanceof Command) {
             Command command = (Command) listener;
             if (userPrivilege.compareTo(command.getRequiredPrivilege()) >= 0) {
-              commands.addAll(command.getCommands());
+              commands.add(command.getCommands().get(0));
             }
           }
         }
@@ -322,6 +322,77 @@ public class Bot extends ListenerAdapter {
         if (connectedBots < 1) {
           botManager.stop(quitMessage);
           System.exit(0);
+        }
+      }
+
+    }).addCommand(new Command(Privilege.OWNER, "config") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, MessageEvent event) {
+        List<String> params = commandParam.getParams();
+        String network = event.getBot().getServerInfo().getNetwork().toLowerCase();
+
+        if (params.size() == 0) {
+          event.respond("config <property> [add|remove] [value]");
+          return;
+        }
+
+        String property = params.get(0);
+        Object configProperty = botHelper.getNetworkConfig(network, property);
+
+        if (configProperty == null) {
+          event.respond("that property doesn't exist");
+          return;
+        }
+
+        if (params.size() == 1) {
+          event.respond(configProperty.toString());
+        } else {
+          String value = params.get(1);
+          Object configValue = null;
+          if (configProperty instanceof String) {
+            configValue = value;
+          } else if (configProperty instanceof Boolean) {
+            configValue = value.equalsIgnoreCase("true") || value.equals("1");
+          } else if (configProperty instanceof Integer) {
+            configValue = Integer.parseInt(value);
+          } else if (configProperty instanceof Double) {
+            configValue = Double.parseDouble(value);
+          } else if (configProperty instanceof JSONArray) {
+            if (params.size() == 3) {
+              JSONArray array = (JSONArray) configProperty;
+              String val = params.get(2);
+              List<String> values = botConfig.toList(array);
+              if (value.equalsIgnoreCase("add")) {
+                if (!values.contains(val)) {
+                  array.put(val);
+                  configValue = array;
+                } else {
+                  event.respond("array already contains this value");
+                }
+              } else if (value.equalsIgnoreCase("remove")) {
+                if (values.contains(val)) {
+                  values.remove(val);
+                  configValue = new JSONArray(values);
+                } else {
+                  event.respond("value not present in array");
+                }
+              } else {
+                event.respond("config " + property + " add|remove <value>");
+              }
+            } else {
+              event.respond("config " + property + " add|remove <value>");
+            }
+          }
+          if (configValue != null) {
+            botHelper.setNetworkConfig(network, property, configValue);
+            event.respond("saved: " + configValue);
+            try {
+              botConfig.save();
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
+          }
         }
       }
 
