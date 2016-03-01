@@ -37,7 +37,6 @@ public abstract class RandomnessExtension {
         List<String> options = new ArrayList<String>();
 
         while (matcher.find()) {
-          matcher.groupCount();
           String option = matcher.group(1);
           option = option == null ? matcher.group(2) : option;
           option = option.replaceAll("^\\s+|\\s+$", "");
