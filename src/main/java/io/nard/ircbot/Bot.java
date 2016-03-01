@@ -37,6 +37,7 @@ import io.nard.ircbot.simplemods.Calculator;
 import io.nard.ircbot.simplemods.RandomnessExtension;
 import io.nard.ircbot.simplemods.TopicVariables;
 import io.nard.ircbot.web.APIHandler;
+import pw.wiped.modules.RedditGrab;
 
 public class Bot extends ListenerAdapter {
 
@@ -93,7 +94,8 @@ public class Bot extends ListenerAdapter {
         .addListeners(QuoteBot.module(botConfig))//
         .addListener(RandomnessExtension.module(botConfig))//
         .addListener(TopicVariables.module(botConfig))//
-        .addListener(Calculator.module(botConfig));
+        .addListener(Calculator.module(botConfig))//
+        .addListener(RedditGrab.module(botConfig));
     // TODO: statistics module
     // TODO: scheduler/reminder/timer module
     // TODO: network-relay
