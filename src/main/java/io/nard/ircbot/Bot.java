@@ -42,7 +42,7 @@ import pw.wiped.modules.RedditGrab;
 public class Bot extends ListenerAdapter {
 
   public static final String BOTNAME = "qwoti";
-  public static final String VERSION = "0.0.2a";
+  public static final String VERSION = "0.0.3a";
   public static final String INFOURL = "http://nard.io/";
 
   private static HttpServer httpServer;
