@@ -3,6 +3,10 @@
     "whoiscache": 360,
     "httpPort": 8080,
     "networks": {"pupsnet": {
+        "nickserv": {
+            "pass": "test",
+            "user": "kwoti"
+        },
         "chans": ["#dev"],
         "ident": "kwoti",
         "changenick": true,

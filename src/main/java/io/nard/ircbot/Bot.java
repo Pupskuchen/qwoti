@@ -99,7 +99,6 @@ public class Bot extends ListenerAdapter {
     // TODO: statistics module
     // TODO: scheduler/reminder/timer module
     // TODO: network-relay
-    // TODO: nickserv authentication
     // TODO: reload/restart
     // TODO: last <offset> (higher offset -> older quotes)
     // TODO: OPT: global config reload (?)
@@ -431,6 +430,16 @@ public class Bot extends ListenerAdapter {
               serverConfiguration.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates());
             } else {
               serverConfiguration.setSocketFactory(SSLSocketFactory.getDefault());
+            }
+          }
+
+          if (network.has("nickserv")) {
+            JSONObject nickserv = network.getJSONObject("nickserv");
+            String user = nickserv.optString("user", network.getString("nick"));
+            String pass = nickserv.optString("pass", null);
+            if (pass != null) {
+              serverConfiguration.setNickservNick(user);
+              serverConfiguration.setNickservPassword(pass);
             }
           }
 
