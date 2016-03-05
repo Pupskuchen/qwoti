@@ -74,15 +74,15 @@ public abstract class LastFM {
             boolean nowPlaying = track.has("@attr") && track.getJSONObject("@attr").has("nowplaying")
                 && track.getJSONObject("@attr").getBoolean("nowplaying");
             String res = "";
-            res += artist != null ? artist + " - " : "";
-            res += album != null ? album + " - " : "";
-            res += name != null ? name : "";
-            if (mbid != null) {
+            res += artist != null && !artist.isEmpty() ? artist + " - " : "";
+            res += album != null && !album.isEmpty() ? album + " - " : "";
+            res += name != null && !name.isEmpty() ? name : "";
+            if (mbid != null && !mbid.isEmpty()) {
               request = Unirest.get("http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=" + apiKey
                   + "&mbid=" + mbid + "&username=" + user + "&format=json").asJson();
-              track = request.getBody().getObject().getJSONObject("track");
+              track = request.getBody().getObject().getJSONObject("track"); // handle error (not found) - mbid?
               long duration = track.getLong("duration");
-              int playcount = track.getInt("userplaycount");
+              int playcount = track.has("userplaycount") ? track.getInt("userplaycount") : 0;
               res += " [playcount " + playcount + "x]";
               if (duration > 0) {
                 res += String.format(" | %02d:%02d", //
