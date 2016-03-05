@@ -24,10 +24,27 @@ public class BotConfig {
    * create new JSON configuration
    * 
    * @param configurationFile
-   * @throws Exception
+   * @throws JSONException
+   * @throws IOException
    */
-  public BotConfig(String configurationFile) throws Exception {
+  public BotConfig(String configurationFile) throws JSONException, IOException {
+    this(configurationFile, false);
+  }
+
+  /**
+   * create new JSON configuration
+   * 
+   * @param configurationFile
+   * @param create
+   *          create file if it doesn't exist
+   * @throws IOException
+   * @throws JSONException
+   */
+  public BotConfig(String configurationFile, boolean create) throws JSONException, IOException {
     this.configPath = configurationFile;
+    if (create && Files.notExists(Paths.get(configurationFile))) {
+      Files.write(Paths.get(configurationFile), "{}".getBytes());
+    }
     config = new JSONObject(new String(Files.readAllBytes(Paths.get(configurationFile))));
   }
 

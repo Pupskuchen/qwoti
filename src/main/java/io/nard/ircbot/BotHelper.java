@@ -23,9 +23,9 @@ public class BotHelper {
   /**
    * cache stuff because whois is slow
    */
-  private Map<UUID, Map<Long, String>> userAccounts = new HashMap<UUID, Map<Long, String>>();
-  private Map<UUID, Map<Long, Boolean>> userAuthed = new HashMap<UUID, Map<Long, Boolean>>();
-  private Map<String, Map<String, Privilege>> userPrivileges = new HashMap<String, Map<String, Privilege>>();
+  private static Map<UUID, Map<Long, String>> userAccounts = new HashMap<UUID, Map<Long, String>>();
+  private static Map<UUID, Map<Long, Boolean>> userAuthed = new HashMap<UUID, Map<Long, Boolean>>();
+  private static Map<String, Map<String, Privilege>> userPrivileges = new HashMap<String, Map<String, Privilege>>();
 
   private BotConfig botConfig = null;
 
@@ -33,6 +33,8 @@ public class BotHelper {
     this.botConfig = botConfig;
 
     CACHE_MAX_AGE = botConfig.getInteger("whoiscache", CACHE_MAX_AGE);
+
+    constructPrivileges(botConfig);
   }
 
   /**
@@ -121,13 +123,6 @@ public class BotHelper {
    * @return map of privileges
    */
   public Map<String, Map<String, Privilege>> getPrivileges() {
-    if (botConfig == null)
-      return null;
-    if (userPrivileges.size() > 0)
-      return userPrivileges;
-
-    constructPrivileges(botConfig);
-
     return userPrivileges;
   }
 
@@ -139,6 +134,9 @@ public class BotHelper {
    * @param configValue
    */
   private void constructPrivileges(BotConfig botConfig) {
+    if (botConfig == null)
+      return;
+
     Map<String, Privilege> privileges = new HashMap<String, Privilege>();
     privileges.put("blacklisted", Privilege.NONE);
     privileges.put("unprivileged", Privilege.GUEST);
@@ -163,6 +161,14 @@ public class BotHelper {
         }
       }
     }
+  }
+
+  /**
+   * refresh user privileges (re-read from config)
+   */
+  public void refreshPrivileges() {
+    userPrivileges.clear();
+    constructPrivileges(botConfig);
   }
 
   public void updateChannelConfig(String network, List<String> currentChannels) {

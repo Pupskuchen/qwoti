@@ -34,6 +34,7 @@ import com.sun.net.httpserver.HttpServer;
 
 import io.nard.ircbot.quotes.QuoteBot;
 import io.nard.ircbot.simplemods.Calculator;
+import io.nard.ircbot.simplemods.LastFM;
 import io.nard.ircbot.simplemods.RandomnessExtension;
 import io.nard.ircbot.simplemods.TopicVariables;
 import io.nard.ircbot.web.APIHandler;
@@ -95,14 +96,14 @@ public class Bot extends ListenerAdapter {
         .addListener(RandomnessExtension.module(botConfig))//
         .addListener(TopicVariables.module(botConfig))//
         .addListener(Calculator.module(botConfig))//
-        .addListener(RedditGrab.module(botConfig));
+        .addListener(RedditGrab.module(botConfig))//
+        .addListener(LastFM.module(botConfig, botHelper));
     // TODO: statistics module
     // TODO: scheduler/reminder/timer module
     // TODO: network-relay
     // TODO: reload/restart
     // TODO: last <offset> (higher offset -> older quotes)
     // TODO: OPT: global config reload (?)
-    // TODO: lastfm
     // TODO: wa / g / isup / dns resolve / ud
     // TODO: interval: save config / log uptime (precision: seconds)
     // TODO: q <pattern> (find -> choose randomly from results)
@@ -390,6 +391,7 @@ public class Bot extends ListenerAdapter {
             event.respond("saved: " + configValue);
             try {
               botConfig.save();
+              botHelper.refreshPrivileges();
             } catch (IOException e) {
               e.printStackTrace();
             }

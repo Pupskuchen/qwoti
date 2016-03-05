@@ -15,7 +15,6 @@ public class CommandListener extends ListenerAdapter {
   private BotHelper botHelper;
   private Map<String, String> commandChars = new HashMap<String, String>();
   private List<Command> commands = new ArrayList<Command>();
-  private Map<String, Map<String, Privilege>> userPrivileges = new HashMap<String, Map<String, Privilege>>();
 
   /**
    * create new CommandListener from given config file<br>
@@ -25,7 +24,6 @@ public class CommandListener extends ListenerAdapter {
    */
   public CommandListener(BotConfig botConfig) {
     this.botHelper = new BotHelper(botConfig);
-    this.userPrivileges = botHelper.getPrivileges();
 
     JSONObject networks = botConfig.getObject("networks");
     for (String network : networks.keySet()) {
@@ -58,26 +56,34 @@ public class CommandListener extends ListenerAdapter {
     String commandChar = commandChars.get(event.getBot().getServerInfo().getNetwork().toLowerCase());
     String message = event.getMessage();
     if (message.startsWith(commandChar) && message.length() > commandChar.length()) {
-      CommandParam commandParam = new CommandParam(message, commandChar);
-      String input = commandParam.getCommand();
+      String input = CommandParam.getCommand(message, commandChar);
 
       String network = event.getBot().getServerInfo().getNetwork().toLowerCase();
       PircBotX bot = event.getBot();
       User user = event.getUser();
 
-      String userAccount = botHelper.getAccount(bot, user);
-
-      Privilege userPrivileges = userAccount == null ? Privilege.GUEST
-          : this.userPrivileges.get(network).get(userAccount.toLowerCase());
-
-      if (userPrivileges == null)
-        userPrivileges = botHelper.isAuthenticated(bot, user) ? Privilege.PRIVILEGED : Privilege.GUEST;
+      String userAccount = null;
+      boolean userAuthed = false;
+      Privilege userPrivileges = Privilege.GUEST;
 
       for (Command command : commands) {
         if (command.getCommands().contains(input)) {
 
+          if (userAccount == null) {
+            userAccount = botHelper.getAccount(bot, user);
+
+            userPrivileges = userAccount == null ? Privilege.GUEST
+                : botHelper.getPrivileges().get(network).get(userAccount.toLowerCase());
+
+            userAuthed = botHelper.isAuthenticated(bot, user);
+
+            if (userPrivileges == null) {
+              userPrivileges = userAuthed ? Privilege.PRIVILEGED : Privilege.GUEST;
+            }
+          }
+
           if (userPrivileges.compareTo(command.getRequiredPrivilege()) >= 0) {
-            command.onCommand(commandParam, event);
+            command.onCommand(new CommandParam(message, commandChar, userAccount, userAuthed), event);
           } else {
             event.respond("you do not have permission to use this command");
           }
