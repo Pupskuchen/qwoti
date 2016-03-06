@@ -89,7 +89,7 @@ public abstract class APIHandler implements HttpHandler {
    * @throws IOException
    */
   protected void sendResponse(HttpExchange httpExchange, String response) throws IOException {
-    sendResponse(httpExchange, response, 200, ContentType.TEXT_PLAIN);
+    sendResponse(httpExchange, response, 200, ContentType.APPLICATION_JSON);
   }
 
   /**
@@ -125,7 +125,7 @@ public abstract class APIHandler implements HttpHandler {
    * @throws IOException
    */
   protected void sendResponse(HttpExchange httpExchange, String response, int status) throws IOException {
-    sendResponse(httpExchange, response, status, ContentType.TEXT_PLAIN);
+    sendResponse(httpExchange, response, status, ContentType.APPLICATION_JSON);
   }
 
   /**

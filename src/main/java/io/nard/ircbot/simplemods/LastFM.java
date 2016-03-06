@@ -1,6 +1,8 @@
 package io.nard.ircbot.simplemods;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
@@ -8,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.pircbotx.Colors;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.MessageEvent;
 
@@ -74,26 +77,35 @@ public abstract class LastFM {
             boolean nowPlaying = track.has("@attr") && track.getJSONObject("@attr").has("nowplaying")
                 && track.getJSONObject("@attr").getBoolean("nowplaying");
             String res = "";
-            res += artist != null && !artist.isEmpty() ? artist + " - " : "";
-            res += album != null && !album.isEmpty() ? album + " - " : "";
-            res += name != null && !name.isEmpty() ? name : "";
-            if (mbid != null && !mbid.isEmpty()) {
-              request = Unirest.get("http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=" + apiKey
-                  + "&mbid=" + mbid + "&username=" + user + "&format=json").asJson();
-              track = request.getBody().getObject().getJSONObject("track"); // handle error (not found) - mbid?
-              long duration = track.getLong("duration");
-              int playcount = track.has("userplaycount") ? track.getInt("userplaycount") : 0;
-              res += " [playcount " + playcount + "x]";
-              if (duration > 0) {
-                res += String.format(" | %02d:%02d", //
-                    TimeUnit.MILLISECONDS.toMinutes(duration), //
-                    TimeUnit.MILLISECONDS.toSeconds(duration)
-                        - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
+            res += Colors.BOLD + Colors.OLIVE + artist + Colors.NORMAL + " - ";
+            res += album != null && !album.isEmpty() ? Colors.BOLD + Colors.OLIVE + album + Colors.NORMAL + " - " : "";
+            res += Colors.BOLD + Colors.OLIVE + name + Colors.NORMAL;
+            try {
+              url = "http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=" + apiKey + "&artist="
+                  + URLEncoder.encode(artist, "UTF-8") + "&track=" + URLEncoder.encode(name, "UTF-8") + "&username="
+                  + user + "&format=json" + (mbid != null && !mbid.isEmpty() ? "&mbid=" + mbid : "");
+              request = Unirest.get(url).asJson();
+              track = request.getBody().getObject();
+              if (!track.has("error")) {
+                track = track.getJSONObject("track"); // handle error (not found) - mbid?
+                long duration = track.getLong("duration");
+                int playcount = track.has("userplaycount") ? track.getInt("userplaycount") : 0;
+                res += " [playcount " + Colors.BOLD + playcount + Colors.NORMAL + "x]";
+                if (duration > 0) {
+                  res += String.format(" [%s%02d:%02d%s]", //
+                      Colors.BOLD + Colors.OLIVE, //
+                      TimeUnit.MILLISECONDS.toMinutes(duration), //
+                      TimeUnit.MILLISECONDS.toSeconds(duration)
+                          - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)), //
+                      Colors.NORMAL);
+                }
               }
+            } catch (UnsupportedEncodingException e) {
+              e.printStackTrace();
             }
             String state = nowPlaying ? " is now playing: "
                 : " is not listening to anything. The last track played was: ";
-            event.getChannel().send().message(user + state + res);
+            event.getChannel().send().message(Colors.BOLD + user + Colors.NORMAL + state + res);
             return;
           }
         } catch (UnirestException e) {
