@@ -47,9 +47,8 @@ public abstract class LastFM {
           event.respond("api key is not configured");
           return;
         }
-        String account = commandParam.getUserAccount();
-        account = account != null ? account : event.getUser().getNick();
-        String user = commandParam.hasParam() ? commandParam.getParam() : account;
+        String user = commandParam.hasParam() ? commandParam.getParams().get(0) : commandParam.getUserAccount();
+        user = user != null ? user : event.getUser().getNick();
 
         try {
           BotConfig lastfmConfig = new BotConfig(
@@ -64,7 +63,12 @@ public abstract class LastFM {
         try {
           HttpResponse<JsonNode> request = Unirest.get(url).asJson();
           if (request.getStatus() == 200) {
-            JSONArray result = request.getBody().getObject().getJSONObject("recenttracks").getJSONArray("track");
+            JSONObject response = request.getBody().getObject();
+            if (response.has("error")) {
+              event.respond("error: " + response.getString("message"));
+              return;
+            }
+            JSONArray result = response.getJSONObject("recenttracks").getJSONArray("track");
             if (result.length() == 0) {
               event.respond("user " + user + " hasn't scrobbled any tracks yet");
               return;
@@ -87,7 +91,7 @@ public abstract class LastFM {
               request = Unirest.get(url).asJson();
               track = request.getBody().getObject();
               if (!track.has("error")) {
-                track = track.getJSONObject("track"); // handle error (not found) - mbid?
+                track = track.getJSONObject("track");
                 long duration = track.getLong("duration");
                 int playcount = track.has("userplaycount") ? track.getInt("userplaycount") : 0;
                 res += " [playcount " + Colors.BOLD + playcount + Colors.NORMAL + "x]";
