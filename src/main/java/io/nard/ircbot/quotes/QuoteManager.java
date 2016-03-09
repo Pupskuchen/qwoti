@@ -2,6 +2,7 @@ package io.nard.ircbot.quotes;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -309,5 +310,18 @@ public class QuoteManager {
     commit();
 
     return count() < before;
+  }
+
+  /**
+   * get random quote from given list of quotes
+   * 
+   * @param <T>
+   * 
+   * @param list
+   * @return random quote from list
+   */
+
+  public static <T> T random(List<T> list) {
+    return list.size() == 0 ? null : list.get(ThreadLocalRandom.current().nextInt(list.size()));
   }
 }

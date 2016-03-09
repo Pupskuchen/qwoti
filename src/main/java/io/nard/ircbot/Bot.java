@@ -106,7 +106,6 @@ public class Bot extends ListenerAdapter {
     // TODO: OPT: global config reload (?)
     // TODO: wa / g / isup / dns resolve / ud
     // TODO: interval: save config / log uptime (precision: seconds)
-    // TODO: q <pattern> (find -> choose randomly from results)
     // TODO: weather / temp
     // TODO: addlink
 

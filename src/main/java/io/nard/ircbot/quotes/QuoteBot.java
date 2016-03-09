@@ -71,22 +71,37 @@ public abstract class QuoteBot {
     }).addCommand(new Command("q", "quote") {
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {
-        Long id = null;
-        String channel = null;
-        if (commandParam.getParam().length() > 0) {
-          try {
-            id = (long) botConfig.toInt(commandParam.getParam());
-          } catch (Exception e) {
-            channel = commandParam.getParam();
+        Quote quote = null;
+        boolean searched = false;
+        if (commandParam.hasParam()) {
+          Integer id = botConfig.toInt(commandParam.getParam());
+          if (id != null) {
+            quote = quoteManager.get(id);
+          } else {
+            List<String> params = commandParam.getParams();
+            if (params.get(0).startsWith("#")) {
+              if (params.size() > 1) {
+                String chan = params.remove(0);
+                String search = Joiner.on(' ').join(params);
+                quote = QuoteManager.random(quoteManager.find(chan, search, false));
+              } else {
+                quote = quoteManager.get(params.get(0));
+              }
+            } else {
+              quote = QuoteManager.random(quoteManager.find(null, commandParam.getParam(), false));
+            }
           }
+          searched = true;
+        } else {
+          quote = quoteManager.get();
         }
-        Quote quote = channel != null ? quoteManager.get(channel) : quoteManager.get(id);
-        if (quote == null && id == null && channel == null) {
-          event.respond("there are no quotes");
-        } else if (quote == null) {
-          event.respond("no such quote");
-        } else
+        if (quote != null) {
           event.getChannel().send().message(quote.niceString(event.getChannel()));
+        } else if (quote == null && searched) {
+          event.respond("nothing found");
+        } else if (quote == null) {
+          event.respond("there are no quotes");
+        }
       }
     }).addCommand(new Command("count") {
       @Override
