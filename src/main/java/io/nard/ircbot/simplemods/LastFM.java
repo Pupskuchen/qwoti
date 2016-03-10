@@ -47,8 +47,9 @@ public abstract class LastFM {
           event.respond("api key is not configured");
           return;
         }
-        String user = commandParam.hasParam() ? commandParam.getParams().get(0) : commandParam.getUserAccount();
-        user = user != null ? user : event.getUser().getNick();
+        String user = commandParam.hasParam() ? commandParam.getParams().get(0) : event.getUser().getNick();
+        String account = botHelper.getAccount(event.getChannel(), user);
+        user = account != null ? account : user;
 
         try {
           BotConfig lastfmConfig = new BotConfig(

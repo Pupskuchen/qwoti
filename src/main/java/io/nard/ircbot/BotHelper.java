@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.hooks.WaitForQueue;
@@ -94,6 +95,23 @@ public class BotHelper {
     } catch (InterruptedException ex) {
       throw new RuntimeException("Error while getting the account name of " + user.getNick(), ex);
     }
+  }
+
+  /**
+   * get the account of someone in a channel by their nickname
+   * 
+   * @param channel
+   * @param user
+   * @return user account or null
+   */
+  public String getAccount(Channel channel, String user) {
+    List<User> users = channel.getUsers().asList();
+    for (User u : users) {
+      if (u.getNick().equals(user)) {
+        return getAccount(channel.getBot(), u);
+      }
+    }
+    return null;
   }
 
   /**
