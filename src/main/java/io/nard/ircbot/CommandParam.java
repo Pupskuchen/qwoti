@@ -33,6 +33,15 @@ public class CommandParam {
   }
 
   /**
+   * get the first parameter or null if there is none
+   * 
+   * @return first parameter
+   */
+  public String getFirst() {
+    return hasParam() ? getParams().get(0) : null;
+  }
+
+  /**
    * check wheter there is a parameter
    * 
    * @return true if there's at least one parameter

@@ -34,6 +34,7 @@ import com.sun.net.httpserver.HttpServer;
 
 import io.nard.ircbot.quotes.QuoteBot;
 import io.nard.ircbot.simplemods.Calculator;
+import io.nard.ircbot.simplemods.DNSResolve;
 import io.nard.ircbot.simplemods.LastFM;
 import io.nard.ircbot.simplemods.RandomnessExtension;
 import io.nard.ircbot.simplemods.TopicVariables;
@@ -97,7 +98,8 @@ public class Bot extends ListenerAdapter {
         .addListener(TopicVariables.module(botConfig))//
         .addListener(Calculator.module(botConfig))//
         .addListener(RedditGrab.module(botConfig))//
-        .addListener(LastFM.module(botConfig, botHelper));
+        .addListener(LastFM.module(botConfig, botHelper))//
+        .addListener(DNSResolve.module(botConfig));
     // TODO: statistics module
     // TODO: scheduler/reminder/timer module
     // TODO: network-relay
