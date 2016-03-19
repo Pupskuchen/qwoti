@@ -7,15 +7,38 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.SSLContext;
+
+import org.apache.http.HttpRequest;
+import org.apache.http.ProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.HttpContext;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.MessageEvent;
 
 import com.google.common.base.Joiner;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.http.options.Options;
 
 import io.nard.ircbot.BotConfig;
 import io.nard.ircbot.Command;
@@ -59,12 +82,40 @@ public abstract class Networking {
           InetAddress address = InetAddress.getByName(input);
           double ping = ping(address);
           if (ping > -1) {
-            double http = isReachable(address, 80, 3000);
-            event.respond(String.format("%s is up - ping: %.2f ms, http: ", input, ping)
-                + (http == -1 ? "unreachable" : String.format("%.2f ms", http)));
+            int[][] http = httpCheck(input);
+            event.respond(//
+                String.format("%s is up - ping: %.2f ms, http: %s, https: %s", input, ping,
+                    (http[0][0] == -1 ? "unreachable" : String.format("%d (%d ms)", http[0][0], http[0][1])),
+                    (http[1][0] == -1 ? "unreachable" : String.format("%d (%d ms)", http[1][0], http[1][1]))));
           } else {
             event.respond(input + " is unreachable for me");
           }
+        } catch (UnknownHostException e) {
+          event.respond("can't resolve that host");
+        }
+      }
+    }).addCommand(new Command("connectable") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, MessageEvent event) {
+        if (!commandParam.hasParam() || commandParam.getParams().size() < 2) {
+          event.respond(commandParam.getCommand() + " <address> <ports...>");
+          return;
+        }
+        String input = commandParam.getParams().remove(0);
+        try {
+          InetAddress address = InetAddress.getByName(input);
+          StringJoiner joiner = new StringJoiner(" | ");
+          for (String arg : commandParam.getParams()) {
+            try {
+              int port = Integer.parseInt(arg);
+              double elapsed = isConnectable(address, port, 500);
+              joiner.add(port + ": " //
+                  + (elapsed == -1 ? "not connectable" : String.format("connectable (%.2f ms)", elapsed)));
+            } catch (NumberFormatException e) {
+            }
+          }
+          event.respond(input + ": " + joiner);
         } catch (UnknownHostException e) {
           event.respond("can't resolve that host");
         }
@@ -105,14 +156,40 @@ public abstract class Networking {
   }
 
   /**
-   * measure time elapsed to connect to given address (and port)
+   * get http status codes of given address
+   * 
+   * @param address
+   * @return status codes [http, https]
+   */
+  public static int[][] httpCheck(String address) {
+    String[] addresses = { "http://" + address, "https://" + address };
+    int[][] result = new int[addresses.length][2];
+    Unirest.setHttpClient(trustingClient());
+    for (int i = 0; i < addresses.length; i++) {
+      try {
+        long before = System.nanoTime();
+        HttpResponse<String> req = Unirest.get(addresses[i]).asString();
+        long elapsed = System.nanoTime() - before;
+        result[i][0] = req.getStatus();
+        result[i][1] = (int) (elapsed / 1000 / 1000);
+      } catch (UnirestException e) {
+        result[i][0] = -1;
+      }
+    }
+    Options.refresh();
+    return result;
+  }
+
+  /**
+   * measure time elapsed to connect to given address (and port)<br>
+   * returns -1 if not connectable
    * 
    * @param address
    * @param port
    * @param timeout
    * @return elapsed time to connect in ms
    */
-  public static double isReachable(InetAddress address, int port, int timeout) {
+  public static double isConnectable(InetAddress address, int port, int timeout) {
     try (Socket socket = new Socket()) {
       InetSocketAddress addr = new InetSocketAddress(address, port);
       long now = System.nanoTime();
@@ -122,5 +199,35 @@ public abstract class Networking {
     } catch (IOException e) {
       return -1;
     }
+  }
+
+  private static HttpClient trustingClient() {
+    try {
+      SSLContext sslcontext = SSLContexts.custom().loadTrustMaterial(null, new TrustStrategy() {
+        @Override
+        public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+          return true;
+        }
+      }).build();
+      CloseableHttpClient httpclient = HttpClients.custom()
+          .setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)//
+          .setRedirectStrategy(new RedirectStrategy() {
+            @Override
+            public boolean isRedirected(HttpRequest request, org.apache.http.HttpResponse response, HttpContext context)
+                throws ProtocolException {
+              return false;
+            }
+
+            @Override
+            public HttpUriRequest getRedirect(HttpRequest request, org.apache.http.HttpResponse response,
+                HttpContext context) throws ProtocolException {
+              return null;
+            }
+          }).setSslcontext(sslcontext).build();
+      return httpclient;
+    } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }
