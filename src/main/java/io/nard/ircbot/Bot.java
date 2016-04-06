@@ -449,6 +449,12 @@ public class Bot extends ListenerAdapter {
           for (String chan : chans) {
             serverConfiguration.addAutoJoinChannel(chan);
           }
+
+          boolean autoReconnect = network.has("autoreconnect") && network.optInt("autoreconnect", 0) >= 0;
+          if (autoReconnect) {
+            serverConfiguration.setAutoReconnect(true).setAutoReconnectDelay(network.getInt("autoreconnect") * 1000);
+          }
+
           botManager.addBot(serverConfiguration.buildConfiguration());
         }
       }

@@ -2,33 +2,36 @@
     "dbfile": "qwoti.odb",
     "whoiscache": 360,
     "httpPort": 8080,
-    "networks": {"pupsnet": {
-        "nickserv": {
-            "pass": "test",
-            "user": "kwoti"
-        },
-        "chans": ["#dev"],
-        "ident": "kwoti",
-        "changenick": true,
-        "owners": [
-            "Ditti",
-            "pkn",
-            "wipeD"
-        ],
-        "commandchar": ";",
-        "ssl": true,
-        "realname": "dev-qwoti",
-        "nick": "kwoti",
-        "blacklisted": [],
-        "cap": true,
-        "port": 6697,
-        "unprivileged": [],
-        "host": "irc.thepups.net",
-        "trustAllCerts": true,
-        "admins": [
-            "SSL",
-            "Klemmlampe",
-            "Joshua"
-        ]
-    }}
+    "networks": {
+        "pupsnet": {
+            "nickserv": {
+                "pass": "test",
+                "user": "kwoti"
+            },
+            "chans": ["#dev"],
+            "ident": "kwoti",
+            "changenick": true,
+            "owners": [
+                "Ditti",
+                "pkn",
+                "wipeD"
+            ],
+            "commandchar": ";",
+            "ssl": true,
+            "realname": "dev-qwoti",
+            "nick": "kwoti",
+            "blacklisted": [],
+            "cap": true,
+            "port": 6697,
+            "unprivileged": [],
+            "host": "irc.thepups.net",
+            "trustAllCerts": true,
+            "admins": [
+                "SSL",
+                "Klemmlampe",
+                "Joshua"
+            ],
+            "autoreconnect": 10
+        }
+    }
 }
