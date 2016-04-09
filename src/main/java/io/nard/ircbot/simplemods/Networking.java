@@ -13,7 +13,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +35,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HttpContext;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.MessageEvent;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.TextParseException;
+import org.xbill.DNS.Type;
 
 import com.google.common.base.Joiner;
 import com.mashape.unirest.http.HttpResponse;
@@ -58,15 +64,42 @@ public abstract class Networking {
           event.respond(commandParam.getCommand() + " <hostname>");
           return;
         }
-        try {
-          InetAddress[] addresses = InetAddress.getAllByName(commandParam.getFirst());
-          List<String> ips = new ArrayList<String>();
-          for (InetAddress address : addresses) {
-            ips.add(address.getHostAddress());
+
+        if (commandParam.getParams().size() == 1) {
+          try {
+            InetAddress[] addresses = InetAddress.getAllByName(commandParam.getFirst());
+            List<String> ips = new ArrayList<String>();
+            for (InetAddress address : addresses) {
+              ips.add(address.getHostAddress());
+            }
+            event.respond(Joiner.on(", ").join(ips));
+          } catch (UnknownHostException e) {
+            event.respond("could not resolve " + commandParam.getFirst());
           }
-          event.respond(Joiner.on(", ").join(ips));
-        } catch (UnknownHostException e) {
-          event.respond("could not resolve " + commandParam.getFirst());
+        } else {
+          String hostname = commandParam.getParams().remove(0);
+          try {
+            Map<String, StringJoiner> ips = new HashMap<String, StringJoiner>();
+            for (String req : commandParam.getParams()) {
+              int type = Type.ANY;
+              type = Type.value(req);
+              Record[] records = type == -1 ? null : new Lookup(hostname, type).run();
+              if (records != null) {
+                for (Record record : records) {
+                  String rtype = Type.string(record.getType());
+                  if (!ips.containsKey(rtype)) {
+                    ips.put(rtype, new StringJoiner(", "));
+                  }
+                  ips.get(rtype).add(record.rdataToString());
+                }
+              } else {
+                ips.put(req, new StringJoiner(", ").add("no result"));
+              }
+            }
+            event.respond(Joiner.on(" | ").withKeyValueSeparator(": ").join(ips));
+          } catch (TextParseException e) {
+            event.respond("that's not a valid DNS name");
+          }
         }
       }
     }).addCommand(new Command("isup") {
@@ -98,24 +131,32 @@ public abstract class Networking {
 
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {
-        if (!commandParam.hasParam() || commandParam.getParams().size() < 2) {
+        if (commandParam.getParams().size() < 2) {
           event.respond(commandParam.getCommand() + " <address> <ports...>");
           return;
         }
         String input = commandParam.getParams().remove(0);
         try {
+          int successful = 0;
           InetAddress address = InetAddress.getByName(input);
           StringJoiner joiner = new StringJoiner(" | ");
           for (String arg : commandParam.getParams()) {
             try {
               int port = Integer.parseInt(arg);
-              double elapsed = isConnectable(address, port, 500);
-              joiner.add(port + ": " //
-                  + (elapsed == -1 ? "not connectable" : String.format("connectable (%.2f ms)", elapsed)));
+              if (port > 0) {
+                double elapsed = isConnectable(address, port, 500);
+                joiner.add(port + ": " //
+                    + (elapsed == -1 ? "not connectable" : String.format("connectable (%.2f ms)", elapsed)));
+                successful++;
+              }
             } catch (NumberFormatException e) {
             }
           }
-          event.respond(input + ": " + joiner);
+          if (successful > 0) {
+            event.respond(input + ": " + joiner);
+          } else {
+            event.respond("please provide valid ports");
+          }
         } catch (UnknownHostException e) {
           event.respond("can't resolve that host");
         }
