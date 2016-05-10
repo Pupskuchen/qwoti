@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import io.nard.ircbot.google.GoogleModule;
 import io.nard.ircbot.quotes.QuoteBot;
 import io.nard.ircbot.simplemods.Calculator;
 import io.nard.ircbot.simplemods.Networking;
@@ -99,7 +100,8 @@ public class Bot extends ListenerAdapter {
         .addListener(Calculator.module(botConfig))//
         .addListener(RedditGrab.module(botConfig))//
         .addListener(LastFM.module(botConfig, botHelper))//
-        .addListener(Networking.module(botConfig));
+        .addListener(Networking.module(botConfig))//
+        .addListener(GoogleModule.module(botConfig));
     // TODO: statistics module
     // TODO: scheduler/reminder/timer module
     // TODO: network-relay
@@ -117,8 +119,7 @@ public class Bot extends ListenerAdapter {
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {
         if (commandParam.getCommand().equals("ditti")) {
-          if (event.getUser().getNick().equals("Ditti"))
-            event.respond("I <3 U");
+          if (event.getUser().getNick().equals("Ditti")) event.respond("I <3 U");
           else
             event.respond("i <3 Ditti!");
         } else {
@@ -155,14 +156,10 @@ public class Bot extends ListenerAdapter {
         int seconds = uptime % 60;
 
         String result = "";
-        if (days > 0)
-          result += days + "d ";
-        if (hours > 0 || days > 0)
-          result += hours + "h ";
-        if (hours > 0 || days > 0 || minutes > 0)
-          result += minutes + "m ";
-        if (hours > 0 || days > 0 || minutes > 0 || seconds > 0)
-          result += seconds + "s";
+        if (days > 0) result += days + "d ";
+        if (hours > 0 || days > 0) result += hours + "h ";
+        if (hours > 0 || days > 0 || minutes > 0) result += minutes + "m ";
+        if (hours > 0 || days > 0 || minutes > 0 || seconds > 0) result += seconds + "s";
 
         event.respond("I'm up for " + result);
       }
