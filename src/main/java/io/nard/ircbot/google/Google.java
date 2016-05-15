@@ -2,6 +2,8 @@ package io.nard.ircbot.google;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -11,7 +13,7 @@ import io.nard.ircbot.Bot;
 
 public class Google {
 
-  private String[][] results = new String[0][2];
+  private List<String[]> results = new ArrayList<String[]>();
 
   public Google(String query) throws Exception {
     if (query == null || query.isEmpty()) {
@@ -24,8 +26,6 @@ public class Google {
     Elements links = Jsoup.connect(google + URLEncoder.encode(query, "UTF-8"))//
         .userAgent(userAgent).get().select(".g>.r>a");
 
-    results = new String[links.size()][2];
-
     for (int i = 0; i < links.size(); i++) {
       Element link = links.get(i);
       String title = link.text();
@@ -36,19 +36,18 @@ public class Google {
         continue;
       }
 
-      results[i][0] = title;
-      results[i][1] = url;
+      results.add(new String[] { title, url });
     }
   }
 
   public String[] get(int i) {
-    if (i < 0 || i > results.length - 1) {
+    if (i < 0 || i > results.size() - 1) {
       return null;
     }
-    return results[i];
+    return results.get(i);
   }
 
-  public String[][] get() {
+  public List<String[]> get() {
     return results;
   }
 
