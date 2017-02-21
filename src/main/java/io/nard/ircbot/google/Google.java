@@ -20,7 +20,7 @@ public class Google {
       throw new Exception("searching requires something to search for");
     }
 
-    String google = "https://www.google.com/search?q=";
+    String google = "https://www.google.com/search?hl=en&q=";
     String userAgent = Bot.BOTNAME + " " + Bot.VERSION + " (+" + Bot.INFOURL + ")";
 
     Elements links = Jsoup.connect(google + URLEncoder.encode(query, "UTF-8"))//
