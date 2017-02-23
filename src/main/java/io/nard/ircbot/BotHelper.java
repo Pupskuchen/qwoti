@@ -78,9 +78,10 @@ public class BotHelper {
           continue;
 
         waitForQueue.close();
-        boolean identified = event.getRegisteredAs() != null && !event.getRegisteredAs().isEmpty();
+        boolean identified = event.isRegistered();
 
-        String account = identified ? event.getRegisteredAs() : null;
+        String registered = event.getRegisteredAs();
+        String account = identified ? (registered.isEmpty() ? event.getNick() : registered) : null;
 
         Map<Long, String> newEntry = new HashMap<Long, String>();
         newEntry.put(new Date().getTime(), account);
