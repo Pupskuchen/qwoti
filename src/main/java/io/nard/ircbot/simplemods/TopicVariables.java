@@ -62,14 +62,22 @@ public abstract class TopicVariables {
           boolean exists = tVars.containsKey(variable);
 
           if (params.size() == 1) {
-            if (exists) {
+            if (variable.equalsIgnoreCase("unset")) {
+              event.respond("tvar unset [variable]");
+            } else if (exists) {
               event.respond(variable + " = " + tVars.get(variable));
             } else {
               event.respond("you don't seem to know what you're doing");
             }
           } else if (params.size() == 2) {
             // numeric stuff
-            if (exists) {
+            if (variable.equalsIgnoreCase("unset")) {
+              if (tVars.containsKey(param)) {
+                updateTopic(chan, topic, tVars, param, null, true);
+              } else {
+                event.respond("I can't delete what isn't there");
+              }
+            } else if (exists) {
               try {
                 int oldValue = Integer.parseInt(tVars.get(variable));
                 String newValue = param;
@@ -93,6 +101,14 @@ public abstract class TopicVariables {
 
       private void updateTopic(OutputChannel chan, String topic, Map<String, String> tVars, String variable,
           String newValue, boolean exists) {
+
+        if (newValue == null) {
+          String value = tVars.get(variable);
+          String current = variable + ": " + value;
+          chan.setTopic(topic.replaceAll("(?:\\s+\\|\\s+" + current + "|" + current + "\\s+\\|\\s+)", ""));
+          return;
+        }
+
         String change = variable + ": " + newValue;
         if (exists) {
           chan.setTopic(topic.replace(variable + ": " + tVars.get(variable), change));
