@@ -51,7 +51,9 @@ public abstract class QuoteBot {
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {
         // remove timestamps
-        String text = commandParam.getParam().trim().replaceAll("\\s*\\[?\\d+:(?:\\d+:?)+\\]?\\s*", "");
+        String regNL = "\\s+\\|\\s+([\\[<])"; // new line
+        String regTS = "\\h*\\[?\\d+:(?:\\d+:?)+\\]?\\s*"; // timestamp
+        String text = commandParam.getParam().trim().replaceAll(regNL, "\n$1").replaceAll(regTS, "");
         if (text.length() < MIN_QUOTE_LENGTH) {
           event.respond("quotes have to be at least " + MIN_QUOTE_LENGTH + " characters long");
         } else {
@@ -62,13 +64,12 @@ public abstract class QuoteBot {
           } catch (Exception e) {
           }
 
-          if (saved)
-            event.respond("saved quote #" + quoteManager.getLatestId());
-          else
-            event.respond("quote couldn't be saved");
+          if (saved) event.respond("saved quote #" + quoteManager.getLatestId());
+          else event.respond("quote couldn't be saved");
         }
       }
     }).addCommand(new Command("q", "quote") {
+
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {
         Quote quote = null;
@@ -104,11 +105,13 @@ public abstract class QuoteBot {
         }
       }
     }).addCommand(new Command("count") {
+
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {
         event.respond(String.format("there are %d quotes", quoteManager.count()));
       }
     }).addCommand(new Command("last") {
+
       @Override
       public void onCommand(CommandParam commandParam, MessageEvent event) {
         Quote quote = quoteManager.getLatest();
