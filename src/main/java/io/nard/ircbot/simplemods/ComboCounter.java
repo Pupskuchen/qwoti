@@ -32,7 +32,7 @@ public abstract class ComboCounter {
       class Combo {
 
         private String current;
-        private int combo;
+        private int combo = 1;
         private User last;
       }
 
@@ -62,15 +62,17 @@ public abstract class ComboCounter {
 
         Combo combo = combos.get(network);
 
-        if (combo.last.equals(user)) return;
+        boolean sameUser = combo.last != null && combo.last.equals(user);
         combo.last = user;
 
         String msg = event.getMessage();
-        if (combo.current != null && combo.current.equals(msg)) {
+        boolean sameMsg = combo.current != null && combo.current.equals(msg);
+        if (!sameUser && sameMsg) {
           combo.combo++;
-        } else {
-          if (combo.combo > botConfig.getInteger("min_combo", 3)) {
+        } else if (!sameMsg) {
+          if (combo.combo >= botConfig.getInteger("min_combo", 3)) {
             event.respond("C-C-C-COMBO BREAKER!!!");
+            event.getChannel().send().message("you destroyed a combo of " + combo.combo);
 
             BotConfig miscStore = new BotConfig("db/misc_" + network + ".json", true);
             int record = miscStore.getInteger("combo_record", 0);
@@ -81,7 +83,7 @@ public abstract class ComboCounter {
             }
           }
           combo.current = event.getMessage();
-          combo.combo = 0;
+          combo.combo = 1;
         }
       }
     });

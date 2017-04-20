@@ -245,13 +245,17 @@ public class Bot extends ListenerAdapter {
       public void onCommand(CommandParam commandParam, MessageEvent event) {
         PircBotX bot = event.getBot();
         List<String> params = commandParam.getParams();
-        for (int i = 0; i < params.size(); i += 2) {
-          String channel = params.get(i);
-          if (!channel.startsWith("#")) {
-            channel = "#" + channel;
+        if (params.size() == 0) {
+          event.getChannel().send().part();
+        } else {
+          for (int i = 0; i < params.size(); i += 2) {
+            String channel = params.get(i);
+            if (!channel.startsWith("#")) {
+              channel = "#" + channel;
+            }
+            String message = params.size() > i + 1 ? params.get(i + 1) : "";
+            bot.sendRaw().rawLine("PART " + channel + " " + message);
           }
-          String message = params.size() > i + 1 ? params.get(i + 1) : "";
-          bot.sendRaw().rawLine("PART " + channel + " " + message);
         }
       }
     }).addCommand(new Command(Privilege.OWNER, "quitall") {
@@ -398,6 +402,12 @@ public class Bot extends ListenerAdapter {
         }
       }
 
+    }).addCommand(new Command(Privilege.OWNER, "raw") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, MessageEvent event) {
+        event.getBot().sendRaw().rawLine(commandParam.getParam());
+      }
     });
 
     globalConfig.addListener(commandListener);
