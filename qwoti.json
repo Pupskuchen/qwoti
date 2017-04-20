@@ -3,18 +3,17 @@
     "whoiscache": 360,
     "httpPort": 8080,
     "networks": {
-        "pupsnet": {
+        "keratnet": {
             "nickserv": {
                 "pass": "test",
                 "user": "kwoti"
             },
-            "chans": ["#dev"],
+            "chans": ["#deaf"],
             "ident": "kwoti",
             "changenick": true,
             "owners": [
                 "Ditti",
-                "pkn",
-                "wipeD"
+                "pupskuchen"
             ],
             "commandchar": ";",
             "ssl": true,
@@ -24,12 +23,9 @@
             "cap": true,
             "port": 6697,
             "unprivileged": [],
-            "host": "irc.thepups.net",
+            "host": "irc.kerat.net",
             "trustAllCerts": true,
             "admins": [
-                "SSL",
-                "Klemmlampe",
-                "Joshua"
             ],
             "autoreconnect": 10
         }

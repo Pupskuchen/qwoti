@@ -4,11 +4,11 @@
 
 	<groupId>io.nard</groupId>
 	<artifactId>qwoti</artifactId>
-	<version>0.0.3a-dev</version>
+	<version>0.0.3b</version>
 	<packaging>jar</packaging>
 
 	<name>qwoti</name>
-	<url>https://nard.io/qwoti</url>
+	<url>https://github.com/pupskuchen/qwoti</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

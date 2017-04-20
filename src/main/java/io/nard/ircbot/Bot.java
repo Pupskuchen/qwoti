@@ -35,8 +35,9 @@ import com.sun.net.httpserver.HttpServer;
 import io.nard.ircbot.google.GoogleModule;
 import io.nard.ircbot.quotes.QuoteBot;
 import io.nard.ircbot.simplemods.Calculator;
-import io.nard.ircbot.simplemods.Networking;
+import io.nard.ircbot.simplemods.ComboCounter;
 import io.nard.ircbot.simplemods.LastFM;
+import io.nard.ircbot.simplemods.Networking;
 import io.nard.ircbot.simplemods.RandomnessExtension;
 import io.nard.ircbot.simplemods.TopicVariables;
 import io.nard.ircbot.web.APIHandler;
@@ -45,8 +46,8 @@ import pw.wiped.modules.RedditGrab;
 public class Bot extends ListenerAdapter {
 
   public static final String BOTNAME = "qwoti";
-  public static final String VERSION = "0.0.3a-dev";
-  public static final String INFOURL = "https://nard.io/qwoti";
+  public static final String VERSION = "0.0.3b";
+  public static final String INFOURL = "https://github.com/pupskuchen/qwoti";
 
   private static HttpServer httpServer;
 
@@ -101,7 +102,8 @@ public class Bot extends ListenerAdapter {
         .addListener(RedditGrab.module(botConfig))//
         .addListener(LastFM.module(botConfig, botHelper))//
         .addListener(Networking.module(botConfig))//
-        .addListener(GoogleModule.module(botConfig));
+        .addListener(GoogleModule.module(botConfig))//
+        .addListeners(ComboCounter.module(botConfig));
     // TODO: statistics module
     // TODO: scheduler/reminder/timer module
     // TODO: network-relay
@@ -120,8 +122,7 @@ public class Bot extends ListenerAdapter {
       public void onCommand(CommandParam commandParam, MessageEvent event) {
         if (commandParam.getCommand().equals("ditti")) {
           if (event.getUser().getNick().equals("Ditti")) event.respond("I <3 U");
-          else
-            event.respond("i <3 Ditti!");
+          else event.respond("i <3 Ditti!");
         } else {
           event.respond("pong!");
         }
