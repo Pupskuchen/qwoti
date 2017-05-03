@@ -74,8 +74,7 @@ public class BotHelper {
       WaitForQueue waitForQueue = new WaitForQueue(bot);
       while (true) {
         WhoisEvent event = waitForQueue.waitFor(WhoisEvent.class);
-        if (!event.getNick().equals(user.getNick()))
-          continue;
+        if (!event.getNick().equals(user.getNick())) continue;
 
         waitForQueue.close();
         boolean identified = event.isRegistered();
@@ -106,6 +105,7 @@ public class BotHelper {
    * @return user account or null
    */
   public String getAccount(Channel channel, String user) {
+    if (channel == null) return null;
     List<User> users = channel.getUsers().asList();
     for (User u : users) {
       if (u.getNick().equals(user)) {
@@ -153,8 +153,7 @@ public class BotHelper {
    * @param configValue
    */
   private void constructPrivileges(BotConfig botConfig) {
-    if (botConfig == null)
-      return;
+    if (botConfig == null) return;
 
     Map<String, Privilege> privileges = new HashMap<String, Privilege>();
     privileges.put("blacklisted", Privilege.NONE);
@@ -173,7 +172,7 @@ public class BotHelper {
         }
 
         for (String priv : privileges.keySet()) {
-          List<String> accounts = botConfig.toList(networks.getJSONObject(network).getJSONArray(priv));
+          List<String> accounts = BotConfig.toList(networks.getJSONObject(network).getJSONArray(priv));
           for (String account : accounts) {
             userPrivileges.get(network).put(account.toLowerCase(), privileges.get(priv));
           }

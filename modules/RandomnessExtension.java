@@ -1,4 +1,4 @@
-package io.nard.ircbot.simplemods;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,12 +6,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.pircbotx.hooks.Listener;
-import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.PircBotX;
+import org.pircbotx.hooks.managers.ListenerManager;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 
+import io.nard.ircbot.AbstractCommandModule;
 import io.nard.ircbot.BotConfig;
+import io.nard.ircbot.BotHelper;
 import io.nard.ircbot.Command;
-import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
 
 /**
@@ -20,16 +22,15 @@ import io.nard.ircbot.CommandParam;
  * @author original by wipeD
  *
  */
-public abstract class RandomnessExtension {
+public class RandomnessExtension extends AbstractCommandModule {
 
-  public static Listener module(BotConfig botConfig) {
+  public RandomnessExtension(PircBotX bot, BotConfig botConfig, BotHelper botHelper, ListenerManager listenerManager) {
+    super(bot, botConfig, botHelper, listenerManager);
 
-    CommandListener commandListener = new CommandListener(botConfig);
-
-    commandListener.addCommand(new Command("random") {
+    cl.addCommand(new Command("random") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         String param = commandParam.getParam();
         Pattern pattern = Pattern.compile("\"([^\\s\"]+[^\"]*[^\\s\"]+)\"|([^\"\\s]+)");
         Matcher matcher = pattern.matcher(param);
@@ -47,10 +48,20 @@ public abstract class RandomnessExtension {
         event.respond(options.get(ThreadLocalRandom.current().nextInt(options.size() - 1)));
       }
 
-    }).addCommand(new Command("roll") {
+      @Override
+      public String getParams() {
+        return "<option> <option> [<option>...]";
+      }
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getHelp() {
+        return "randomly choose one of the given options, use \"quotes\" for options containing whitespaces";
+      }
+
+    }.setPrivmsgCapable(true)).addCommand(new Command("roll") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
 
         int min = 0;
         int max = 100;
@@ -80,36 +91,56 @@ public abstract class RandomnessExtension {
         min = Math.abs(min);
         max = Math.abs(max);
 
-        if (max > 999999)
-          max = 999999;
-        if (min > 999999)
-          min = 0;
+        if (max > 999999) max = 999999;
+        if (min > 999999) min = 0;
 
         if (max < min) {
           int t = max;
           max = min;
           min = t;
-        } else if (max == min)
-          max++;
+        } else if (max == min) max++;
 
         int rollsy = (int) ((Math.random() * (max - min + 1)) + min);
 
         event.respond("You rolled a " + rollsy + "! (" + min + " - " + max + ")");
       }
 
-    }).addCommand(new Command("flip", "flop", "flipflop") {
+      @Override
+      public String getParams() {
+        return "[min] [max]";
+      }
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getHelp() {
+        return "\"roll the dice\" and get a number in the given range; "
+            + "if not specified the range will be 0-100; if one value is given, it will be the new maximum";
+      }
+
+    }.setPrivmsgCapable(true)).addCommand(new Command("flip", "flop", "flipflop") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         int rollsy = (int) (Math.random() * 2);
 
         event.respond("You " + commandParam.getCommand() + "ped a coin: " + (rollsy == 1 ? "Tails" : "Heads"));
       }
 
-    });
+      @Override
+      public String getHelp() {
+        return "in need of a decision? flip a coin!";
+      }
 
-    return commandListener;
+    }.setPrivmsgCapable(true));
+  }
 
+  @Override
+  public String getName() {
+    return "random";
+  }
+
+  @Override
+  public String getDescription() {
+    return "provides multiple commands that kind of serve randomness";
   }
 
 }

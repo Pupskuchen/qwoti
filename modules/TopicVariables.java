@@ -1,4 +1,4 @@
-package io.nard.ircbot.simplemods;
+
 
 import java.util.HashMap;
 import java.util.List;
@@ -6,30 +6,33 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.pircbotx.Channel;
+import org.pircbotx.PircBotX;
 import org.pircbotx.UserLevel;
-import org.pircbotx.hooks.Listener;
-import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.managers.ListenerManager;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.pircbotx.output.OutputChannel;
 
 import com.google.common.collect.Lists;
 
+import io.nard.ircbot.AbstractCommandModule;
 import io.nard.ircbot.BotConfig;
+import io.nard.ircbot.BotHelper;
 import io.nard.ircbot.Command;
-import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
 import io.nard.ircbot.Privilege;
 
-public abstract class TopicVariables {
+public class TopicVariables extends AbstractCommandModule {
 
-  public static Listener module(BotConfig botConfig) {
+  public TopicVariables(PircBotX bot, BotConfig botConfig, BotHelper botHelper, ListenerManager listenerManager) {
+    super(bot, botConfig, botHelper, listenerManager);
 
-    CommandListener commandListener = new CommandListener(botConfig);
-
-    commandListener.addCommand(new Command(Privilege.NONE, "tvar") {
+    cl.addCommand(new Command(Privilege.NONE, "tvar") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
-        List<UserLevel> uLevels = Lists.newArrayList(event.getUser().getUserLevels(event.getChannel()));
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
+        Channel channel = commandParam.getChannel();
+        List<UserLevel> uLevels = Lists.newArrayList(event.getUser().getUserLevels(channel));
 
         boolean topicAccess = false;
         for (UserLevel level : uLevels) {
@@ -48,7 +51,7 @@ public abstract class TopicVariables {
           event.respond("tvar variable [value]");
         } else {
           Map<String, String> tVars = new HashMap<String, String>();
-          String topic = event.getChannel().getTopic();
+          String topic = channel.getTopic();
           Pattern pattern = Pattern.compile("([^:\\s]+): ([^|]*[^\\s|])");
           Matcher matcher = pattern.matcher(topic);
 
@@ -58,7 +61,7 @@ public abstract class TopicVariables {
 
           String variable = params.get(0);
           String param = commandParam.getParam().replaceFirst(variable + "\\s+", "");
-          OutputChannel chan = event.getChannel().send();
+          OutputChannel chan = channel.send();
           boolean exists = tVars.containsKey(variable);
 
           if (params.size() == 1) {
@@ -116,10 +119,28 @@ public abstract class TopicVariables {
           chan.setTopic(topic + " | " + change);
         }
       }
+
+      @Override
+      public String getParams() {
+        return "[unset] <variable> [value|++|--]";
+      }
+
+      @Override
+      public String getHelp() {
+        return "(un-)set a variable that is stored in the channel's topic; "
+            + "use ++ and -- to increase or decrease numeric (integer) values";
+      }
     });
+  }
 
-    return commandListener;
+  @Override
+  public String getName() {
+    return "topicvars";
+  }
 
+  @Override
+  public String getDescription() {
+    return "easily manage variables stored in a channel topic";
   }
 
 }

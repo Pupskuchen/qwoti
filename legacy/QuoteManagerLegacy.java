@@ -1,5 +1,6 @@
-package io.nard.ircbot.quotes;
+package quotes;
 
+import java.io.File;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,19 +22,17 @@ import io.nard.ircbot.BotConfig;
 /**
  * Handle database interactions for quotes
  */
-public class QuoteManager {
+public class QuoteManagerLegacy {
+
   private EntityManagerFactory emf;
   private EntityManager em;
-  // private BotConfig bc;
 
   /**
    * create QuoteManager instance to handle database interactions
    * 
    * @param botConfig
    */
-  public QuoteManager(BotConfig botConfig) {
-    // bc = botConfig;
-    // this("db/" + botConfig.getStringValue("dbfile"));
+  public QuoteManagerLegacy(BotConfig botConfig) {
     this(botConfig.getString("dbfile"));
   }
 
@@ -42,18 +41,17 @@ public class QuoteManager {
    * 
    * @param dbFile
    */
-  public QuoteManager(String dbFile) {
+  public QuoteManagerLegacy(String dbFile) {
     dbFile = dbFile == null ? Bot.BOTNAME + ".odb" : dbFile;
-    String dbPath = "db/" + dbFile;
-    emf = Persistence.createEntityManagerFactory(dbPath);
+    String dbPath = "db" + File.separator + dbFile;
+    emf = Persistence.createEntityManagerFactory("objectdb:" + dbPath);
     em = emf.createEntityManager();
 
     em.getTransaction().begin();
   }
 
   private void begin() {
-    if (!em.getTransaction().isActive())
-      em.getTransaction().begin();
+    if (!em.getTransaction().isActive()) em.getTransaction().begin();
   }
 
   private void commit() {
@@ -61,7 +59,8 @@ public class QuoteManager {
   }
 
   public void close() {
-    em.close();
+    if (em.getTransaction().isActive()) em.getTransaction().rollback();
+    if (em.isOpen()) em.close();
     emf.close();
   }
 
@@ -73,8 +72,7 @@ public class QuoteManager {
   public long count() {
     try {
       Query query = em.createQuery("SELECT COUNT(quote) FROM Quote quote");
-      if (query.getResultList().size() < 1)
-        return 0;
+      if (query.getResultList().size() < 1) return 0;
       return (long) query.getSingleResult();
     } catch (Exception e) {
       return 0;
@@ -110,8 +108,7 @@ public class QuoteManager {
    */
   public Quote getLatest() {
     Query query = em.createQuery("SELECT quote FROM Quote quote ORDER BY quote.id DESC").setMaxResults(1);
-    if (query.getResultList().size() < 1)
-      return null;
+    if (query.getResultList().size() < 1) return null;
     return (Quote) query.getSingleResult();
   }
 
@@ -145,9 +142,18 @@ public class QuoteManager {
       }
       query = em.createQuery("SELECT quote FROM Quote quote").setMaxResults(1)
           .setFirstResult((int) (new Random().nextDouble() * total));
-      if (query.getResultList().size() < 1)
-        return null;
-      return (Quote) query.getSingleResult();
+      if (query.getResultList().size() < 1) return null;
+      try {
+        Object result = query.getSingleResult();
+        System.out.println("result is of type " + (result.getClass().getName()) + " - " + result.toString());
+        return (Quote) result;
+      } catch (ClassCastException e) {
+        System.err
+            .println("quotes in database are of different data type than expected (" + Quote.class.getName() + ")");
+      } catch (Exception e) {
+        System.err.println("something went wrong while getting quote out of the db file");
+      }
+      return null;
     } else {
       CriteriaBuilder cb = em.getCriteriaBuilder();
       CriteriaQuery<Quote> q = cb.createQuery(Quote.class);
@@ -159,11 +165,14 @@ public class QuoteManager {
       query.setParameter(p, id);
       try {
         return query.getSingleResult();
+      } catch (ClassCastException e) {
+        System.err
+            .println("quotes in database are of different data type than expected (" + Quote.class.getName() + ")");
       } catch (Exception e) {
-        return null;
+        System.err.println("something went wrong while getting quote out of the db file");
       }
+      return null;
     }
-    // return em.find(Quote.class, id);
   }
 
   public Quote get(String chan) {

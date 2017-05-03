@@ -3,16 +3,20 @@ package io.nard.ircbot;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.pircbotx.Channel;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 public class CommandParam {
+
   private String command;
   private String param;
   private List<String> params;
   private String userAccount;
   private boolean userAuthed;
+  private Channel channel;
 
   /**
    * get the command
@@ -33,12 +37,43 @@ public class CommandParam {
   }
 
   /**
+   * get channel the command was called in
+   * 
+   * @return channel or null if privmsg
+   */
+  public Channel getChannel() {
+    return channel;
+  }
+
+  /**
+   * check whether this command was called from a channel or privmsg
+   * 
+   * @return true if command was called in private message
+   */
+  public boolean isPrivMsg() {
+    return channel == null;
+  }
+
+  /**
    * get the first parameter or null if there is none
    * 
    * @return first parameter
    */
   public String getFirst() {
     return hasParam() ? getParams().get(0) : null;
+  }
+
+  /**
+   * convenience method to get command parameters
+   * 
+   * @param index
+   * @return parameter at given index or null
+   */
+  public String get(int index) {
+    if (index >= 0 && index < params.size()) {
+      return params.get(index);
+    }
+    return null;
   }
 
   /**
@@ -67,7 +102,15 @@ public class CommandParam {
     return userAuthed;
   }
 
-  private void setUp(String input, String userAccount, boolean userAuthed) {
+  /**
+   * create CommandParam
+   * 
+   * @param input
+   * @param userAccount
+   * @param userAuthed
+   * @param channel
+   */
+  public CommandParam(String input, String userAccount, boolean userAuthed, Channel channel) {
     List<String> temp = Lists.newArrayList(Splitter.on(' ').trimResults().omitEmptyStrings().split(input));
 
     this.command = temp.remove(0).toLowerCase();
@@ -76,15 +119,8 @@ public class CommandParam {
 
     this.userAccount = userAccount;
     this.userAuthed = userAuthed;
-  }
 
-  /**
-   * create CommandParam
-   * 
-   * @param input
-   */
-  public CommandParam(String input, String userAccount, boolean userAuthed) {
-    setUp(input, userAccount, userAuthed);
+    this.channel = channel;
   }
 
   /**
@@ -92,9 +128,12 @@ public class CommandParam {
    * 
    * @param input
    * @param commandChar
+   * @param userAccount
+   * @param userAuthed
+   * @param channel
    */
-  public CommandParam(String input, String commandChar, String userAccount, boolean userAuthed) {
-    setUp(input.substring(commandChar.length()), userAccount, userAuthed);
+  public CommandParam(String input, String commandChar, String userAccount, boolean userAuthed, Channel channel) {
+    this(input.substring(commandChar.length()), userAccount, userAuthed, channel);
   }
 
   /**

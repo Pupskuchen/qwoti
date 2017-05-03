@@ -1,4 +1,4 @@
-package io.nard.ircbot.quotes;
+package quotes;
 
 import java.io.IOException;
 import java.util.List;

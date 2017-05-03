@@ -1,4 +1,4 @@
-package io.nard.ircbot.quotes;
+package quotes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,14 +6,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.pircbotx.Channel;
+import org.pircbotx.Colors;
+import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.Listener;
-import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.ActionEvent;
 import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.managers.ListenerManager;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import com.google.common.base.Joiner;
 
+import io.nard.ircbot.AbstractListener;
+import io.nard.ircbot.AbstractModule;
+import io.nard.ircbot.Bot;
 import io.nard.ircbot.BotConfig;
+import io.nard.ircbot.BotHelper;
 import io.nard.ircbot.Command;
 import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
@@ -25,20 +32,15 @@ import io.nard.ircbot.Privilege;
 /**
  * Listener for IRC bot QuoteBot module
  */
-public abstract class QuoteBot {
+public class QuoteBot extends AbstractModule {
 
-  /**
-   * create QuoteBot listeners
-   * 
-   * @param botConfig
-   * @return
-   * @throws Exception
-   */
-  public static List<Listener> module(final BotConfig botConfig) {
+  private List<Listener> listeners = new ArrayList<Listener>();
+  private QuoteManager quoteManager;
 
-    List<Listener> listeners = new ArrayList<Listener>();
+  public QuoteBot(PircBotX bot, BotConfig botConfig, BotHelper botHelper, ListenerManager listenerManager) {
+    super(bot, botConfig, botHelper, listenerManager);
 
-    final QuoteManager quoteManager = new QuoteManager(botConfig);
+    quoteManager = new QuoteManager(botConfig);
     CommandListener commandListener = new CommandListener(botConfig);
     new QuoteWeb(quoteManager);
 
@@ -49,18 +51,19 @@ public abstract class QuoteBot {
       private static final int MIN_QUOTE_LENGTH = 3;
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         // remove timestamps
         String regNL = "\\s+\\|\\s+([\\[<])"; // new line
         String regTS = "\\h*\\[?\\d+:(?:\\d+:?)+\\]?\\s*"; // timestamp
         String text = commandParam.getParam().trim().replaceAll(regNL, "\n$1").replaceAll(regTS, "");
+        boolean privMsg = commandParam.isPrivMsg();
         if (text.length() < MIN_QUOTE_LENGTH) {
           event.respond("quotes have to be at least " + MIN_QUOTE_LENGTH + " characters long");
         } else {
           boolean saved = false;
           try {
-            saved = quoteManager.save(
-                new Quote(event.getUser(), event.getChannel(), text, event.getBot().getServerInfo().getNetwork()));
+            saved = quoteManager.save(new Quote(event.getUser(), privMsg ? null : commandParam.getChannel(), text,
+                event.getBot().getServerInfo().getNetwork()));
           } catch (Exception e) {
           }
 
@@ -68,10 +71,20 @@ public abstract class QuoteBot {
           else event.respond("quote couldn't be saved");
         }
       }
-    }).addCommand(new Command("q", "quote") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getParams() {
+        return "<quote>";
+      }
+
+      @Override
+      public String getHelp() {
+        return "add a new quote; use | to separate lines";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command("q", "quote") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         Quote quote = null;
         boolean searched = false;
         if (commandParam.hasParam()) {
@@ -97,36 +110,60 @@ public abstract class QuoteBot {
           quote = quoteManager.get();
         }
         if (quote != null) {
-          event.getChannel().send().message(quote.niceString(event.getChannel()));
+          if (commandParam.isPrivMsg()) event.respond(quote.niceString());
+          else commandParam.getChannel().send().message(quote.niceString(commandParam.getChannel()));
         } else if (quote == null && searched) {
           event.respond("nothing found");
         } else if (quote == null) {
           event.respond("there are no quotes");
         }
       }
-    }).addCommand(new Command("count") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
-        event.respond(String.format("there are %d quotes", quoteManager.count()));
+      public String getParams() {
+        return "[id]";
       }
-    }).addCommand(new Command("last") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getHelp() {
+        return "show a quote; either with given id or a random one";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command("count") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
+        long count = quoteManager.count();
+        if (count == 1) event.respond("there is one quote");
+        else event.respond(String.format("there are %d quotes", count));
+      }
+
+      @Override
+      public String getHelp() {
+        return "display amount of quotes saved";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command("last") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         Quote quote = quoteManager.getLatest();
         if (quote != null) {
-          event.getChannel().send().message(quote.niceString(event.getChannel()));
+          if (commandParam.isPrivMsg()) event.respond(quote.niceString());
+          else commandParam.getChannel().send().message(quote.niceString(commandParam.getChannel()));
         } else {
           event.respond("there are no quotes");
         }
       }
-    }).addCommand(new Command("find", "findexact") {
+
+      @Override
+      public String getHelp() {
+        return "show most recent quote";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command("find", "findexact") {
 
       private static final int MAX_FIND_RESULTS = 3;
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         List<String> params = commandParam.getParams();
         boolean exact = !commandParam.getCommand().equals("find");
         String channel = null, pattern = null;
@@ -155,15 +192,28 @@ public abstract class QuoteBot {
           } else {
             event.respond("found " + results + " matching quotes");
             for (Quote quote : quotes) {
-              event.getChannel().send().message(quote.shortString(event.getChannel()));
+              if (commandParam.isPrivMsg()) event.respond(quote.shortString());
+              else commandParam.getChannel().send().message(quote.shortString(commandParam.getChannel()));
             }
           }
         }
       }
-    }).addCommand(new Command(Privilege.ADMIN, "del", "delete") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getParams() {
+        return "<expression>";
+      }
+
+      @Override
+      public String getHelp() {
+        return "use " + Colors.BOLD + "find" + Colors.NORMAL
+            + " to search for all quotes containing all of the keywords\n"//
+            + "use " + Colors.BOLD + "findexact" + Colors.NORMAL + "to search for the exact expression";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command(Privilege.ADMIN, "del", "delete") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         Long id = null;
         if (commandParam.getParam().length() > 0) {
           try {
@@ -181,10 +231,20 @@ public abstract class QuoteBot {
           event.respond("something about that id is wrong...");
         }
       }
-    }).addCommand(new Command("snap") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getParams() {
+        return "<id>";
+      }
+
+      @Override
+      public String getHelp() {
+        return "delete a quote";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command("snap") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         List<String> params = commandParam.getParams();
         // if (params.size() < 1) {
         // event.respond("snap [user] [n] [offset] [skip]");
@@ -200,7 +260,7 @@ public abstract class QuoteBot {
             n = Integer.parseInt(params.get(0));
           } catch (NumberFormatException e) {
             user = params.get(0);
-            if (!event.getChannel().getUsersNicks().contains(user)) {
+            if (!commandParam.getChannel().getUsersNicks().contains(user)) {
               event.respond("who is dis?");
               return;
             }
@@ -241,7 +301,7 @@ public abstract class QuoteBot {
         }
 
         String network = event.getBot().getServerInfo().getNetwork();
-        String channel = event.getChannel().getName();
+        String channel = commandParam.getChannel().getName();
 
         List<BufferEntry> messages;
         if (user != null) {
@@ -256,12 +316,13 @@ public abstract class QuoteBot {
           boolean success = false;
           Quote quote = null;
           try {
-            quote = new Quote(event.getUser(), event.getChannel(), MessageBuffer.listToString(messages), network);
+            quote = new Quote(event.getUser(), commandParam.getChannel(), MessageBuffer.listToString(messages),
+                network);
             success = quoteManager.save(quote);
           } catch (Exception e) {
           }
           if (success && quote != null) {
-            event.getChannel().send().message("saved " + quote.niceString(event.getChannel()));
+            commandParam.getChannel().send().message("saved " + quote.niceString(commandParam.getChannel()));
           } else {
             event.respond("quote couldn't be saved");
           }
@@ -269,11 +330,26 @@ public abstract class QuoteBot {
           event.respond("this didn't go so well (did nobody say something?)");
         }
       }
+
+      @Override
+      public String getParams() {
+        return "[user] [lines] [offset] [skip]";
+      }
+
+      @Override
+      public String getHelp() {
+        return "\"snap\" what someone else previously said and save it as quote\n" //
+            + Bot.format(Colors.BOLD, "user") + ": who to snap; "//
+            + Bot.format(Colors.BOLD, "lines") + ": how many lines to snap; "//
+            + Bot.format(Colors.BOLD, "offset") + ": how many lines since your desired line should be ignored\n" //
+            + Bot.format(Colors.BOLD, "skip")
+            + ": since you can snap multiple lines, you can also leave out some of them (e.g. \"2\" or \"2,4,6\" or \"2,4-6,8\")";
+      }
     });
 
     listeners.add(commandListener);
 
-    listeners.add(new ListenerAdapter() {
+    listeners.add(new AbstractListener() {
 
       @Override
       public void onMessage(MessageEvent event) {
@@ -316,7 +392,30 @@ public abstract class QuoteBot {
         }
       }
     });
+  }
 
-    return listeners;
+  @Override
+  public void startup() {
+    for (Listener l : listeners) {
+      listenerManager.addListener(l);
+    }
+  }
+
+  @Override
+  public void shutdown() {
+    for (Listener l : listeners) {
+      listenerManager.removeListener(l);
+    }
+    quoteManager.close();
+  }
+
+  @Override
+  public String getName() {
+    return "quotes";
+  }
+
+  @Override
+  public String getDescription() {
+    return "easily save and manage user quotes";
   }
 }

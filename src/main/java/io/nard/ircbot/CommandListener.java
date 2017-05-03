@@ -6,12 +6,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
+import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
-import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.events.PrivateMessageEvent;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 
-public class CommandListener extends ListenerAdapter {
+public class CommandListener extends AbstractListener {
+
   private BotHelper botHelper;
   private Map<String, String> commandChars = new HashMap<String, String>();
   private List<Command> commands = new ArrayList<Command>();
@@ -23,7 +27,7 @@ public class CommandListener extends ListenerAdapter {
    * @param botConfig
    */
   public CommandListener(BotConfig botConfig) {
-    this.botHelper = new BotHelper(botConfig);
+    this.botHelper = Bot.botHelper;
 
     JSONObject networks = botConfig.getObject("networks");
     for (String network : networks.keySet()) {
@@ -53,21 +57,36 @@ public class CommandListener extends ListenerAdapter {
 
   @Override
   public void onMessage(MessageEvent event) throws Exception {
-    String commandChar = commandChars.get(event.getBot().getServerInfo().getNetwork().toLowerCase());
-    String message = event.getMessage();
+    handle(event, event.getMessage(), event.getUser());
+  }
+
+  @Override
+  public void onPrivateMessage(PrivateMessageEvent event) throws Exception {
+    handle(event, event.getMessage(), event.getUser());
+  }
+
+  private void handle(Event oevent, String message, User user) {
+    boolean isPrivMsg = oevent instanceof PrivateMessageEvent;
+    GenericMessageEvent event = (GenericMessageEvent) oevent;
+
+    Channel channel = null;
+    if (!isPrivMsg) {
+      channel = ((MessageEvent) oevent).getChannel();
+    }
+
+    String commandChar = isPrivMsg ? "" : commandChars.get(event.getBot().getServerInfo().getNetwork().toLowerCase());
     if (message.startsWith(commandChar) && message.length() > commandChar.length()) {
       String input = CommandParam.getCommand(message, commandChar);
 
       String network = event.getBot().getServerInfo().getNetwork().toLowerCase();
       PircBotX bot = event.getBot();
-      User user = event.getUser();
 
       String userAccount = null;
       boolean userAuthed = false;
       Privilege userPrivileges = Privilege.GUEST;
 
       for (Command command : commands) {
-        if (command.getCommands().contains(input)) {
+        if (command.getCommands().contains(input) && (!isPrivMsg || command.isPrivmsgCapable())) {
 
           if (userAccount == null) {
             userAccount = botHelper.getAccount(bot, user);
@@ -83,10 +102,12 @@ public class CommandListener extends ListenerAdapter {
           }
 
           if (userPrivileges.compareTo(command.getRequiredPrivilege()) >= 0) {
-            command.onCommand(new CommandParam(message, commandChar, userAccount, userAuthed), event);
+            command.onCommand(new CommandParam(message, commandChar, userAccount, userAuthed, channel), event);
           } else {
             event.respond("you do not have permission to use this command");
           }
+        } else if (command.getCommands().contains(input) && isPrivMsg && !command.isPrivmsgCapable()) {
+          event.respond("this command cannot be used via private message");
         }
       }
     }

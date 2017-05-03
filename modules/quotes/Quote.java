@@ -1,4 +1,4 @@
-package io.nard.ircbot.quotes;
+package quotes;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -6,15 +6,9 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import javax.jdo.annotations.Unique;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-
 import org.pircbotx.Channel;
 import org.pircbotx.User;
 
-@Entity
 public class Quote implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -24,11 +18,8 @@ public class Quote implements Serializable {
   private String channel;
   private String network;
   private String text;
-  @Unique
   private Long viewId;
 
-  @Id
-  @GeneratedValue
   private long id;
 
   /**
@@ -41,14 +32,6 @@ public class Quote implements Serializable {
     return now.getTime();
   }
 
-  private void setUp(User user, long added, Channel channel, String text, String network) {
-    this.user = user.getNick();
-    this.added = added;
-    this.channel = channel.getName();
-    this.text = text;
-    this.network = network;
-  }
-
   /**
    * create new quote (with current time)
    * 
@@ -59,12 +42,9 @@ public class Quote implements Serializable {
    * @throws Exception
    */
   public Quote(User user, Channel channel, String text, String network) throws Exception {
-
-    if (user == null || text == null || channel == null || network == null)
-      throw new Exception("missing mandatory quote properties");
-
-    setUp(user, getCurrentTime(), channel, text, network);
+    this(user, getCurrentTime(), channel, text, network);
   }
+
 
   /**
    * create new quote
@@ -77,18 +57,35 @@ public class Quote implements Serializable {
    * @throws Exception
    */
   public Quote(User user, Long added, Channel channel, String text, String network) throws Exception {
+    this(user.getNick(), added, channel != null ? channel.getName() : "privmsg", text, network);
+  }
 
-    if (user == null || text == null || channel == null || network == null)
-      throw new Exception("missing mandatory quote properties");
 
-    if (added == null)
-      added = getCurrentTime();
+  /**
+   * create new quote
+   * 
+   * @param user
+   * @param added
+   * @param channel
+   * @param text
+   * @param network
+   * @throws Exception
+   */
+  public Quote(String user, Long added, String channel, String text, String network) throws Exception {
 
-    setUp(user, added, channel, text, network);
+    if (user == null || text == null || network == null) throw new Exception("missing mandatory quote properties");
+
+    if (added == null) added = getCurrentTime();
+
+    this.user = user;
+    this.added = added;
+    this.channel = channel;
+    this.text = text;
+    this.network = network;
   }
 
   public String getChannel() {
-    return channel;
+    return channel == null ? "privmsg" : channel;
   }
 
   public String getNetwork() {
@@ -136,18 +133,15 @@ public class Quote implements Serializable {
    * @param viewId
    * @return true if ID was set, false if it wasn't
    */
-  public boolean setViewId(Long viewId) {
-    if (this.viewId != null) {
-      return false;
-    }
-    this.viewId = viewId;
-    return true;
+  public Quote setViewId(Long viewId) {
+    if (this.viewId == null) this.viewId = viewId;
+    return this;
   }
 
   /**
    * get quote as nice, readable string<br>
-   * if <code>currentChannel != null</code>, all strings will be escaped so they won't highlight
-   * users in the desired channel
+   * if <code>currentChannel != null</code>, all strings will be escaped so they won't highlight users in the desired
+   * channel
    * 
    * @param currentChannel
    * @return quote as nicely formatted string

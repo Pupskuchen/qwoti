@@ -68,6 +68,17 @@ public class BotConfig {
   }
 
   /**
+   * get configuration for given network
+   * 
+   * @param network
+   * @return json object of the configuration
+   */
+  public JSONObject getNetwork(String network) {
+    JSONObject networks = config.getJSONObject("networks");
+    return networks.has(network) ? networks.getJSONObject(network) : null;
+  }
+
+  /**
    * update/insert string
    * 
    * @param key
@@ -236,7 +247,7 @@ public class BotConfig {
    * @param arr
    * @return list
    */
-  public List<String> toList(JSONArray arr) {
+  public static List<String> toList(JSONArray arr) {
     List<String> list = new ArrayList<String>();
     for (Object item : arr) {
       list.add((String) item);

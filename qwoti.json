@@ -1,33 +1,41 @@
 {
-    "dbfile": "qwoti.odb",
+    "dbfile": "qwoti.db",
     "whoiscache": 360,
     "httpPort": 8080,
-    "networks": {
-        "keratnet": {
-            "nickserv": {
-                "pass": "test",
-                "user": "kwoti"
-            },
-            "chans": ["#deaf"],
-            "ident": "kwoti",
-            "changenick": true,
-            "owners": [
-                "Ditti",
-                "pupskuchen"
-            ],
-            "commandchar": ";",
-            "ssl": true,
-            "realname": "dev-qwoti",
-            "nick": "kwoti",
-            "blacklisted": [],
-            "cap": true,
-            "port": 6697,
-            "unprivileged": [],
-            "host": "irc.kerat.net",
-            "trustAllCerts": true,
-            "admins": [
-            ],
-            "autoreconnect": 10
-        }
-    }
+    "networks": {"keratnet": {
+        "nickserv": {
+            "pass": "test",
+            "user": "kwoti"
+        },
+        "chans": ["#deaf"],
+        "ident": "kwoti",
+        "changenick": true,
+        "owners": [
+            "Ditti",
+            "pupskuchen"
+        ],
+        "commandchar": ";",
+        "ssl": true,
+        "modules": [
+            "topicvars",
+            "reddit",
+            "random",
+            "networking",
+            "lastfm",
+            "google",
+            "combocounter",
+            "calc",
+            "quotes"
+        ],
+        "realname": "dev-qwoti",
+        "nick": "kwoti",
+        "blacklisted": [],
+        "cap": true,
+        "port": 6697,
+        "unprivileged": [],
+        "host": "irc.kerat.net",
+        "autoreconnect": 10,
+        "trustAllCerts": true,
+        "admins": []
+    }}
 }

@@ -1,4 +1,4 @@
-package io.nard.ircbot.quotes;
+package quotes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,7 @@ import org.pircbotx.User;
  * useful utility methods for the QuoteBot module
  */
 public abstract class QuoteBotUtils {
+
   /**
    * prevents users in given channel to be highlighted
    * 

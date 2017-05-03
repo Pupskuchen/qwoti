@@ -1,4 +1,4 @@
-package io.nard.ircbot.simplemods;
+
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,8 +33,9 @@ import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HttpContext;
-import org.pircbotx.hooks.Listener;
-import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.PircBotX;
+import org.pircbotx.hooks.managers.ListenerManager;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.TextParseException;
@@ -46,20 +47,21 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.http.options.Options;
 
+import io.nard.ircbot.AbstractCommandModule;
 import io.nard.ircbot.BotConfig;
+import io.nard.ircbot.BotHelper;
 import io.nard.ircbot.Command;
-import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
 
-public abstract class Networking {
+public class Networking extends AbstractCommandModule {
 
-  public static Listener module(BotConfig botConfig) {
-    CommandListener commandListener = new CommandListener(botConfig);
+  public Networking(PircBotX bot, BotConfig botConfig, BotHelper botHelper, ListenerManager listenerManager) {
+    super(bot, botConfig, botHelper, listenerManager);
 
-    commandListener.addCommand(new Command("resolve", "dns") {
+    cl.addCommand(new Command("resolve", "dns") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         if (!commandParam.hasParam()) {
           event.respond(commandParam.getCommand() + " <hostname>");
           return;
@@ -102,10 +104,20 @@ public abstract class Networking {
           }
         }
       }
-    }).addCommand(new Command("isup") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getParams() {
+        return "<hostname>";
+      }
+
+      @Override
+      public String getHelp() {
+        return "get DNS entries for given hostname";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command("isup") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         if (!commandParam.hasParam()) {
           event.respond(commandParam.getCommand() + " <address>");
           return;
@@ -127,10 +139,20 @@ public abstract class Networking {
           event.respond("can't resolve that host");
         }
       }
-    }).addCommand(new Command("connectable") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getParams() {
+        return "<host>";
+      }
+
+      @Override
+      public String getHelp() {
+        return "check whether or not a host is reachable";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command("connectable") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         if (commandParam.getParams().size() < 2) {
           event.respond(commandParam.getCommand() + " <address> <ports...>");
           return;
@@ -161,9 +183,17 @@ public abstract class Networking {
           event.respond("can't resolve that host");
         }
       }
-    });
 
-    return commandListener;
+      @Override
+      public String getParams() {
+        return "<host> <port> [<port>...]";
+      }
+
+      @Override
+      public String getHelp() {
+        return "test whether or not the given host is connectable (open port) on the given port(s)";
+      }
+    }.setPrivmsgCapable(true));
   }
 
   /**
@@ -245,6 +275,7 @@ public abstract class Networking {
   private static HttpClient trustingClient() {
     try {
       SSLContext sslcontext = SSLContexts.custom().loadTrustMaterial(null, new TrustStrategy() {
+
         @Override
         public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
           return true;
@@ -253,6 +284,7 @@ public abstract class Networking {
       CloseableHttpClient httpclient = HttpClients.custom()
           .setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)//
           .setRedirectStrategy(new RedirectStrategy() {
+
             @Override
             public boolean isRedirected(HttpRequest request, org.apache.http.HttpResponse response, HttpContext context)
                 throws ProtocolException {
@@ -271,4 +303,15 @@ public abstract class Networking {
     }
     return null;
   }
+
+  @Override
+  public String getName() {
+    return "networking";
+  }
+
+  @Override
+  public String getDescription() {
+    return "provide networking tools like dns, port and connectivity checks";
+  }
+
 }

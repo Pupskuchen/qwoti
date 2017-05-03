@@ -1,4 +1,4 @@
-package io.nard.ircbot.simplemods;
+
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -11,23 +11,25 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.pircbotx.Colors;
-import org.pircbotx.hooks.Listener;
-import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.PircBotX;
+import org.pircbotx.hooks.managers.ListenerManager;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
+import io.nard.ircbot.AbstractCommandModule;
 import io.nard.ircbot.BotConfig;
 import io.nard.ircbot.BotHelper;
 import io.nard.ircbot.Command;
-import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
 
-public abstract class LastFM {
-  public static Listener module(BotConfig botConfig, BotHelper botHelper) {
-    CommandListener commandListener = new CommandListener(botConfig);
+public class LastFM extends AbstractCommandModule {
+
+  public LastFM(PircBotX bot, BotConfig botConfig, BotHelper botHelper, ListenerManager listenerManager) {
+    super(bot, botConfig, botHelper, listenerManager);
 
     if (Files.notExists(Paths.get("lastfm"))) {
       try {
@@ -39,16 +41,16 @@ public abstract class LastFM {
 
     String apiKey = botConfig.getString("lastfm-api", null);
 
-    commandListener.addCommand(new Command("np") {
+    cl.addCommand(new Command("np") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         if (apiKey == null || apiKey.isEmpty()) {
           event.respond("api key is not configured");
           return;
         }
         String user = commandParam.hasParam() ? commandParam.getParams().get(0) : event.getUser().getNick();
-        String account = botHelper.getAccount(event.getChannel(), user);
+        String account = botHelper.getAccount(commandParam.getChannel(), user);
         user = account != null ? account : user;
 
         try {
@@ -110,7 +112,9 @@ public abstract class LastFM {
             }
             String state = nowPlaying ? " is now playing: "
                 : " is not listening to anything. The last track played was: ";
-            event.getChannel().send().message(Colors.BOLD + user + Colors.NORMAL + state + res);
+            String msg = Colors.BOLD + user + Colors.NORMAL + state + res;
+            if (!commandParam.isPrivMsg()) commandParam.getChannel().send().message(msg);
+            else event.respond(msg);
             return;
           }
         } catch (UnirestException e) {
@@ -118,10 +122,20 @@ public abstract class LastFM {
         }
         event.respond("error getting data");
       }
-    }).addCommand(new Command("setuser") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public String getParams() {
+        return "[user]";
+      }
+
+      @Override
+      public String getHelp() {
+        return "show last.fm's now playing information for yourself or given user";
+      }
+    }.setPrivmsgCapable(true)).addCommand(new Command("setuser") {
+
+      @Override
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         if (commandParam.hasParam()) {
           String lastfmUser = commandParam.getParams().get(0);
           String account = botHelper.getAccount(event.getBot(), event.getUser());
@@ -140,8 +154,26 @@ public abstract class LastFM {
           event.respond("setuser <lastfm-user>");
         }
       }
-    });
 
-    return commandListener;
+      @Override
+      public String getParams() {
+        return "<user>";
+      }
+
+      @Override
+      public String getHelp() {
+        return "set your last.fm username to be used for now playing information";
+      }
+    }.setPrivmsgCapable(true));
+  }
+
+  @Override
+  public String getName() {
+    return "lastfm";
+  }
+
+  @Override
+  public String getDescription() {
+    return "show last.fm now playing information (requires last.fm api key to be configured)";
   }
 }

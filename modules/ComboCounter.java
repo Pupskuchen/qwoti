@@ -1,18 +1,19 @@
-package io.nard.ircbot.simplemods;
 
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONException;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.hooks.Listener;
-import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.managers.ListenerManager;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 
+import io.nard.ircbot.AbstractListener;
+import io.nard.ircbot.AbstractModule;
 import io.nard.ircbot.BotConfig;
 import io.nard.ircbot.BotHelper;
 import io.nard.ircbot.Command;
@@ -20,14 +21,14 @@ import io.nard.ircbot.CommandListener;
 import io.nard.ircbot.CommandParam;
 import io.nard.ircbot.Privilege;
 
-public abstract class ComboCounter {
+public class ComboCounter extends AbstractModule {
 
-  public static List<Listener> module(BotConfig botConfig) {
+  private List<Listener> listeners = new ArrayList<Listener>();
 
-    BotHelper botHelper = new BotHelper(botConfig);
-    List<Listener> listeners = new ArrayList<Listener>();
+  public ComboCounter(PircBotX bot, BotConfig botConfig, BotHelper botHelper, ListenerManager listenerManager) {
+    super(bot, botConfig, botHelper, listenerManager);
 
-    listeners.add(new ListenerAdapter() {
+    listeners.add(new AbstractListener() {
 
       class Combo {
 
@@ -87,11 +88,10 @@ public abstract class ComboCounter {
         }
       }
     });
-
     listeners.add(new CommandListener(botConfig).addCommand(new Command("combo") {
 
       @Override
-      public void onCommand(CommandParam commandParam, MessageEvent event) {
+      public void onCommand(CommandParam commandParam, GenericMessageEvent event) {
         String network = event.getBot().getServerInfo().getNetwork().toLowerCase();
         try {
           BotConfig miscStore = new BotConfig("db/misc_" + network + ".json", true);
@@ -101,9 +101,36 @@ public abstract class ComboCounter {
           event.respond("No idea about any records");
         }
       }
-    }));
 
-    return listeners;
+      @Override
+      public String getHelp() {
+        return "display current combo record";
+      }
+    }.setPrivmsgCapable(true)));
+  }
+
+  @Override
+  public void startup() {
+    for (Listener l : listeners) {
+      listenerManager.addListener(l);
+    }
+  }
+
+  @Override
+  public void shutdown() {
+    for (Listener l : listeners) {
+      listenerManager.removeListener(l);
+    }
+  }
+
+  @Override
+  public String getName() {
+    return "combocounter";
+  }
+
+  @Override
+  public String getDescription() {
+    return "count combos and keep a record";
   }
 
 }
