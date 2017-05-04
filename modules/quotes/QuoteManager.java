@@ -105,7 +105,7 @@ public class QuoteManager {
       pst.setString(3, quote.getUser());
       pst.setString(4, quote.getChannel());
       pst.setString(5, quote.getNetwork());
-      pst.setString(6, quote.getText());
+      pst.setString(6, quote.getText(true));
 
       pst.executeUpdate();
 

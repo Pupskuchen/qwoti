@@ -1,4 +1,4 @@
-package io.nard.ircbot.web;
+package io.nard.ircbot;
 
 import java.io.IOException;
 import java.io.OutputStream;

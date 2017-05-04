@@ -9,8 +9,8 @@ import org.json.JSONObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import io.nard.ircbot.APIHandler;
 import io.nard.ircbot.Bot;
-import io.nard.ircbot.web.APIHandler;
 
 public class QuoteWeb {
 

@@ -20,8 +20,6 @@ public class Quote implements Serializable {
   private String text;
   private Long viewId;
 
-  private long id;
-
   /**
    * get current time in milliseconds
    * 
@@ -117,10 +115,6 @@ public class Quote implements Serializable {
 
   public String getText(boolean newLines) {
     return newLines ? text : getText();
-  }
-
-  public long getInternalId() {
-    return id;
   }
 
   public Long getId() {

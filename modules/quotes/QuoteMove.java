@@ -26,7 +26,7 @@ public class QuoteMove extends AbstractModule {
 
     for (Quote q : quotes) {
       try {
-        nm.save(new quotes.Quote(q.getUser(), q.getAdded(), q.getChannel(), q.getText(), q.getNetwork())
+        nm.save(new quotes.Quote(q.getUser(), q.getAdded(), q.getChannel(), q.getText(true), q.getNetwork())
             .setViewId(q.getId()));
       } catch (Exception e) {
         e.printStackTrace();

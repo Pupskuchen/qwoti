@@ -48,8 +48,6 @@ import com.google.common.collect.Lists;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-import io.nard.ircbot.web.APIHandler;
-
 public class Bot {
 
   public static final String BOTNAME = "qwoti";
