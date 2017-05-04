@@ -861,7 +861,7 @@ public class Bot {
             .filter(p -> p.toString().endsWith(".java"))//
             .distinct().forEach(path -> {
 
-              String options = "-sourcepath " + modDir + " " + path.toString();
+              String options = "-sourcepath " + modDir + " -encoding UTF-8 " + path.toString();
               compiler.run(null, null, null, options.split(" "));
 
               String className = path.getFileName().toString();
