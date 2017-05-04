@@ -72,7 +72,7 @@ public class Google extends AbstractCommandModule {
       String userAgent = Bot.BOTNAME + " " + Bot.VERSION + " (+" + Bot.INFOURL + ")";
 
       Elements links = Jsoup.connect(google + URLEncoder.encode(query, "UTF-8"))//
-          .userAgent(userAgent).get().select(".g>.r>a");
+          .userAgent(userAgent).get().select("h3.r>a");
 
       for (int i = 0; i < links.size(); i++) {
         Element link = links.get(i);
