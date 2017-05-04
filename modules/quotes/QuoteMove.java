@@ -1,7 +1,5 @@
 package quotes;
 
-import java.util.List;
-
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.managers.ListenerManager;
 
@@ -9,7 +7,7 @@ import io.nard.ircbot.AbstractModule;
 import io.nard.ircbot.BotConfig;
 import io.nard.ircbot.BotHelper;
 //import io.nard.ircbot.quotes.Quote;
-//import io.nard.ircbot.quotes.QuoteManager;
+//import io.nard.ircbot.quotes.QuoteManagerLegacy;
 
 public class QuoteMove extends AbstractModule {
 
@@ -18,20 +16,20 @@ public class QuoteMove extends AbstractModule {
   }
 
   private void transport() {
-    QuoteManager qm = new QuoteManager((String) null);
-    quotes.QuoteManager nm = new quotes.QuoteManager((String) null);
-
-    List<Quote> quotes = qm.getAll();
-    qm.close();
-
-    for (Quote q : quotes) {
-      try {
-        nm.save(new quotes.Quote(q.getUser(), q.getAdded(), q.getChannel(), q.getText(true), q.getNetwork())
-            .setViewId(q.getId()));
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
+//    QuoteManagerLegacy qm = new QuoteManagerLegacy((String) null);
+//    quotes.QuoteManager nm = new quotes.QuoteManager((String) null);
+//
+//    List<Quote> quotes = qm.getAll();
+//    qm.close();
+//
+//    for (Quote q : quotes) {
+//      try {
+//        nm.save(new quotes.Quote(q.getUser(), q.getAdded(), q.getChannel(), q.getText(true), q.getNetwork())
+//            .setViewId(q.getId()));
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//    }
   }
 
   @Override

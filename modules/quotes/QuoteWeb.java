@@ -62,10 +62,10 @@ public class QuoteWeb {
         response.put("error", "no quotes found");
         sendResponse(httpExchange, response, 404);
       } else {
-        JSONArray response = new JSONArray(quotes);
-        // for (Quote quote : quotes) {
-        // response.put(String.valueOf(quote.getId()), jsonFromQuote(quote));
-        // }
+        JSONArray response = new JSONArray();
+        for (Quote quote : quotes) {
+          response.put(jsonFromQuote(quote));
+        }
         sendResponse(httpExchange, response.toString());
       }
     }
