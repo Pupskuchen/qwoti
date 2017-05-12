@@ -100,7 +100,8 @@ public class Bot {
     final Map<String, Map<String, Privilege>> userPrivileges = botHelper.getPrivileges();
 
     Configuration.Builder globalConfig = new Configuration.Builder()//
-        .setVersion(BOTNAME + " " + VERSION + " - " + INFOURL);
+        .setVersion(BOTNAME + " " + VERSION + " - " + INFOURL)//
+        .setMaxLineLength( 384 );
 
     // TODO: statistics module
     // TODO: scheduler/reminder/timer module
