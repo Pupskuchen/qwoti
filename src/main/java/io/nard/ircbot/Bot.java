@@ -815,6 +815,7 @@ public class Bot {
     } catch (JSONException | IOException e) {
       System.out.println("error reading config file");
       e.printStackTrace();
+      return false;
     }
     return true;
   }

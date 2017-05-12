@@ -41,6 +41,7 @@ public class QuoteManager {
     String dbPath = "db" + File.separator + dbFile;
 
     try {
+      new File(dbPath).getParentFile().mkdirs();
       con = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
       st = con.createStatement();
       st.setQueryTimeout(3);

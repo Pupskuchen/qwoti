@@ -3,3 +3,4 @@
 /db
 /target
 /.classpath
+*.class
