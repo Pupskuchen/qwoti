@@ -67,6 +67,10 @@ public class BotConfig {
     }
   }
 
+  public boolean has(String key) {
+    return config.has(key);
+  }
+
   /**
    * get configuration for given network
    * 

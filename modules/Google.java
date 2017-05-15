@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.pircbotx.PircBotX;
@@ -37,7 +38,9 @@ public class Google extends AbstractCommandModule {
           for (int i = 0; i < 3; i++) {
             String[] result = g.get(i);
             if (result != null) {
-              String res = result[0] + " (" + result[1] + ")";
+              String res = result[0];
+              if (result.length > 1) res += " (" + result[1] + ")";
+
               if (commandParam.isPrivMsg()) event.respond(res);
               else commandParam.getChannel().send().message(res);
             }
@@ -71,8 +74,16 @@ public class Google extends AbstractCommandModule {
       String google = "https://www.google.com/search?hl=en&q=";
       String userAgent = Bot.BOTNAME + " " + Bot.VERSION + " (+" + Bot.INFOURL + ")";
 
-      Elements links = Jsoup.connect(google + URLEncoder.encode(query, "UTF-8"))//
-          .userAgent(userAgent).get().select("h3.r>a");
+      Document res = Jsoup.connect(google + URLEncoder.encode(query, "UTF-8"))//
+          .userAgent(userAgent).get();
+      Elements links = res.select("h3.r>a");
+
+      Elements calc = res.select("#res #topstuff h2.r");
+
+      if (calc.size() == 1) {
+        results.add(new String[] { calc.get(0).text() });
+        return;
+      }
 
       for (int i = 0; i < links.size(); i++) {
         Element link = links.get(i);

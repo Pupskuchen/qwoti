@@ -212,4 +212,12 @@ public class BotHelper {
     networks.put(network, networkC);
     botConfig.putObject("networks", networks);
   }
+
+  public String getAPIKey(String api) {
+    if (botConfig.has("api_keys")) {
+      JSONObject o = botConfig.getObject("api_keys");
+      if (o.has(api)) return o.getString(api);
+    }
+    return null;
+  }
 }

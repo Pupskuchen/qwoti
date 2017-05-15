@@ -2,6 +2,10 @@
     "dbfile": "qwoti.db",
     "whoiscache": 360,
     "httpPort": 8080,
+    "api_keys": {
+        "lastfm": "...",
+        "imgur": "..."
+    },
     "networks": {"keratnet": {
         "nickserv": {
             "pass": "test",
@@ -26,7 +30,8 @@
             "combocounter",
             "calc",
             "quotes",
-            "urbandictionary"
+            "urbandictionary",
+            "urltitle"
         ],
         "realname": "dev-qwoti",
         "nick": "kwoti",

@@ -39,7 +39,7 @@ public class LastFM extends AbstractCommandModule {
       }
     }
 
-    String apiKey = botConfig.getString("lastfm-api", null);
+    String apiKey = botHelper.getAPIKey("lastfm");
 
     cl.addCommand(new Command("np") {
 
