@@ -78,7 +78,7 @@ public class Google extends AbstractCommandModule {
           .userAgent(userAgent).get();
 
       Elements links = res.select("h3.r>a");
-      Element quick = res.getElementById( "_vBb" );
+      Element quick = res.getElementById("_vBb");
       Elements calc = res.select("#res #topstuff h2.r");
 
       if (calc.size() == 1) {
@@ -87,10 +87,10 @@ public class Google extends AbstractCommandModule {
       }
 
       if (quick != null) {
-        Elements r = quick.getElementsByClass( "_m3b" );
-        Elements q = quick.getElementsByClass( "_eGc" );
+        Elements r = quick.getElementsByClass("_m3b");
+        Elements q = quick.getElementsByClass("_eGc");
         if (r.size() > 0 && q.size() > 0) {
-          results.add(new String[] { q.get( 0 ).text() + ": " + r.get( 0 ).text() });
+          results.add(new String[] { q.get(0).text() + ": " + r.get(0).text() });
           return;
         }
       }
